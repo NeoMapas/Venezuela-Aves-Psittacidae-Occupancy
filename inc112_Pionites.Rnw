@@ -1,0 +1,31 @@
+
+\subsection{Genus Pionites, species \emph{P. melanocephala}}
+The genus Bolborhynchus is represented in Venezuela by a single species.
+
+<<echo=false>>=
+subset(rsm.loros,grepl("Pionites ",rownames(rsm.loros)))[,-1]
+@ 
+
+%\subsubsection{
+<<Pm,echo=false>>=
+ak <- "Pion_mela"
+k ="Pionites melanocephala"
+@
+
+
+\emph{\Sexpr{k}} is found in southern Venezuela. It was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+With the few number of detections, only one model could be fitted for this species. The fitted model had high estimates and high uncertainty in detectability parameters, and its predictions are not informative.
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+

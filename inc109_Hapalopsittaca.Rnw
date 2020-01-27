@@ -1,0 +1,24 @@
+
+\subsection{Genus Hapalopsittaca, species \emph{H. amazonina}}  
+The genus Hapalopsittaca is represented in Venezuela by a single species.
+
+<<H,echo=false>>=
+subset(rsm.loros,grepl("Hapalopsittaca ",rownames(rsm.loros)))[,-1]
+@ 
+
+%\subsubsection{
+<<echo=false>>=
+ak <- "Hapa_amaz"
+k ="Hapalopsittaca amazonina"
+@
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela. 
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. It was not detected by NeoMaps field work, and only has few GBIF record from the 2008-2012 period. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+

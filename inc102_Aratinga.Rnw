@@ -1,0 +1,22 @@
+
+
+\subsection{Genus Aratinga}
+
+Evidence for the presence of the genus Aratinga in Venezuela is scarce. One species is suspected to be present, but reliable records are missing.
+<<echo=false>>=
+subset(rsm.loros,grepl("Aratinga ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Aratinga solstitialis}}     
+<<echo=false>>=
+ak <- "Arat_sols"
+k ="Aratinga solstitialis"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+The distribution of \emph{\Sexpr{k}} probably includes part of the Guayana Esequiba, but taxonomic and distribution information for this taxon needs further review \citep{Aratinga2005}.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 

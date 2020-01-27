@@ -1,0 +1,83 @@
+
+\subsection{Genus Forpus}
+
+The genus Forpus is represented in Venezuela by three species, but only one species was detected in NeoMaps surveys of 2010.
+
+<<F,echo=false>>=
+subset(rsm.loros,grepl("Forpus ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Forpus conspicillatus}}    
+<<Fc,echo=false>>=
+ak <- "Forp_cons"
+k ="Forpus conspicillatus"
+@
+
+\emph{\Sexpr{k}} is only found in south-western Venezuela, and it was not expected in NeoMaps sampling region.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+
+\subsubsection{\emph{Forpus modestus}}   
+<<Fm,echo=false>>=
+ak <- "Forp_mode"
+k ="Forpus modestus"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+\subsubsection{\emph{Forpus passerinus}}         
+<<Fp,echo=false>>=
+ak <- "Forp_pass"
+k ="Forpus passerinus"
+@
+
+
+\emph{\Sexpr{k}} has a widespread distribution in northern Venezuela. It  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from NeoMaps sampling localities.. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+Available data allowed to fit several alternative models, but the model with most support included climatic covariates.
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+The best model includes an effect of time of day on the detection probability.
+
+<<fig=true,echo=false,width=3,height=3>>=
+<<ProbDetect>>
+@ 
+
+The fitted model had high estimated parameter values.
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+
+However, the combination of coeficients resulted in predictions with high contrast in unconditional probability of presence.
+
+<<Forpus_passerinus_plotPsi,fig=true,echo=false,width=6.15,height=5>>=
+<<phPsiC>>
+<<plotPsiCrop>>
+@ 
+
+

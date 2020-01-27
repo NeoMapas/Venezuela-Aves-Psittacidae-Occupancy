@@ -1,0 +1,59 @@
+
+\subsection{Genus Psittacara}
+The genus Psittacara is represented in Venezuela by two species, both were detected in NeoMaps surveys.
+<<echo=false>>=
+subset(rsm.loros,grepl("Psittacara ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Psittacara leucophthalmus}} 
+<<echo=false>>=
+ak <- "Arat_leuc"
+k ="Psittacara leucophthalmus"
+@
+
+\emph{\Sexpr{k}} is only found in eastern Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+This species was only detected in few NeoMaps localities. Due to the scarce data available, only two models could be fitted. These models had a poor fit with large estimates and large uncertainty for both parameters.
+
+<<echo=false>>=
+<<rsltsSS>>
+<<SummaryMdl>>
+@ 
+
+
+
+
+
+\subsubsection{\emph{Psittacara wagleri}}        
+<<Aw,echo=false>>=
+ak <- "Arat_wagl"
+k ="Psittacara wagleri"
+@
+
+\emph{\Sexpr{k}} is only found in northern mountain ranges of Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+This species was only detected in few NeoMaps localities. Due to the scarce data available only one model could be fitted. This model had a poor fit with a combination of low probability of occurrence and high probability of detection and too wide standard errors for the estimated parameters:
+
+<<echo=false>>=
+<<rsltsSS>>
+<<SummaryMdl>>
+@ 
+
+
+

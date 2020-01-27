@@ -1,0 +1,1165 @@
+\documentclass[english,12pt]{article}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lscape}
+
+\usepackage[shiftmargins]{vmargin}
+\setpapersize{USletter}
+%%\setmarginsrb{left}{top}{right}{bottom}{headhgt}{headsep}{foothgt}{footskip}
+\setmarginsrb{3.2cm}{2cm}{1.8cm}{2cm}{0.5cm}{0.5cm}{0.5cm}{0.5cm}
+
+\usepackage[Glenn]{fncychap}
+\usepackage{longtable}
+\usepackage[authoryear,sort]{natbib}
+
+\usepackage[pagebackref=false,colorlinks=true,citecolor=black,linkcolor=black,filecolor=black,urlcolor=black]{hyperref}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\usepackage{titling}
+
+\pretitle{\begin{center} 
+\large \colorbox{black}{\textcolor{white}{Iniciativa para el Mapeo de la Biodiversidad Neotropical}} \par \HRule \\[0.4cm] \LARGE }
+
+
+\preauthor{\large\begin{center}}
+\postauthor{\\
+Centro de Estudios Botánicos y Agroforestales \\Instituto Venezolano de Investigaciones Científicas
+\end{center}
+\par}
+
+\date{Version of \today}
+\postdate{\par\end{center}}
+
+
+\author{JR Ferrer-Paris and AY Sánchez-Mercado}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\setkeys{Gin}{width=0.6\textwidth}
+\bibliographystyle{/home/jferrer/Dropbox/NeoMapas/lib/custom-bib/tesis}
+%%\bibliographystyle{/Users/jferrer/NeoMapas/lib/custom-bib/tesis}
+
+\predate{\begin{center}\normalsize \\NeoMaps document ID NM.i.2019.1\\}
+
+\title{Monitoring Psittacidae in Venezuela: Distribution data and occupancy models for 2010}
+\posttitle{\par \HRule \\[1.5cm]
+\includegraphics[width=8cm]{/home/jferrer/Dropbox/NeoMapas/img/logo_NeoMapas.jpg}
+\end{center}\vskip 0.5em}
+
+
+\maketitle
+
+
+%\section*{Disclaimer}
+
+%Document of internal use, containing preliminary analysis for the Neotropical Biodiversity Mapping Initiative. Please do not distribute.
+%Este es un documento de uso interno de la iniciativa NeoMapas. Los datos y los resultados finales de estos análisis serán publicados de manera oportuna. Mientras tanto por favor considere esta información confidencial y preliminar, y no la difunda sin autorización expresa de los autores.
+
+%The use of data, information, or code from this document is restricted until the final version is released. Please refer to the authors for any query regarding the use or distribution of this document.
+%Este documento puede contener fragmentos de información, datos y análisis tomados de otros informes internos de NeoMapas. En caso de dudas o inconsistencias entre informes por favor consulte la información más actualizada en la página web de NeoMapas: \url{http://www.neomaps.org}.
+
+%Document generated using \texttt{Sweave} in \emph{R} \citep{Tea05}\footnote{R version: \Sexpr{R.version.string}, OS: \Sexpr{R.version$os}}, data tables and figures are generated automatically from updated data sets. Please refer to \url{http://www.neomaps.org} under menu item ``documents'' for the most recent version.
+
+%por tanto todas las tablas y figuras se generan y actualizan automáticamente a partir de los datos suministrados para el momento de elaboración del informe. Para acceso al código fuente en \emph{R} y los archivos de datos contacte al primer autor. 
+%Dentro de \emph{R} utilizamos los paquetes \emph{vegan} \citep{vegan},\emph{cluster} \citep{cluster}, entre otros. 
+
+
+
+
+\section{Introduction}
+
+Venezuela has a high diversity of psittacids (Aves, Psittaciformes) but many species are threatened by increasing rate of land transformation \citep{OliveiraMiranda2010} and illegal wildlife trade  \citep{SanchezMercado2017}. The UICN reports declining regional trend for 34 of the 50 Psittacidae species occurring in the country, and six species are already under some threat category in the Venezuelan Red Data Book \citep{LibroRojo2008}. 
+
+Here we provide an assessment of current distribution of Psittacid species in Venezuela using data from a national bird monitoring program carried out in 2010 as a component of the Neotropical Biodiversity Mapping Initiative \citep[NeoMaps][]{RS02,NeoMapasAves,FerrerParisNeoMapas}.
+
+
+\section{Methods}
+
+\subsection{Distribution and monitoring data}
+Information on bird species present in Venezuela is taken from \citep{Hilty2003}. Range maps for all these species were obtained from BirdLife International \citep{BirdLife2014}. Distribution records were retrieved from the Global Biodiversity Information Facility \citep{GBIFaves}.
+
+NeoMaps bird survey was completed between March and April 2010 \citep{NeoMapasAves}. Sampling universe consisted in 170 half-degree cells defined in the Venezuelan Biodiversity Grid, which cover over half of the country, but does not include the southern forest regions. Twenty seven cells were selected using a stratified sampling design based on environmental and biogeographical variables. Number in the following figure refer to NeoMaps transect codes (NM01 \ldots NM93).
+
+<<packages and GIS, echo=false,results=hide>>=
+##require(rgbif)
+require(unmarked)
+require(AICcmodavg)
+require(RColorBrewer)
+require(randomForest)
+source("~/Dropbox/Mapoteca/inc/inc00_funciones.R")
+
+
+Mm <- function(x) {
+	y <- tolower(x)
+	z <- paste(toupper(substr(y,0,1)),substr(y,2,nchar(y)),sep="")
+	z
+}
+gis.dir <- "/opt/gisdata/vectorial"
+gis.dir <- "/media/jferrer/Intenso/gisdata/"
+if (!exists("vz0"))
+    vz0 <- shapefile(sprintf("%s/admin/ecoSIG_division_pol/division_pol.shp",gis.dir))
+if (!exists("TMWB"))
+    tmwb <- shapefile(sprintf("%s/admin/TMWB/TM_WORLD_BORDERS-0.3.shp",gis.dir))
+
+@ 
+\setkeys{Gin}{width=.9\textwidth}
+
+<<CNEB,fig=true,echo=false,width=6,height=5>>=
+##para 82 milimetros (una columna): 82*0.03937*600
+##para 2/3 de columan es 2800...
+##tiff(filename = "FerrerSanchez_Figure1.tiff", width = 2800, height = 2800*.84, units = "px", pointsize = 64, compression = c("jpeg"), bg = "white")
+ ## usar lwd=4
+par(mar=c(3,3,1,1),xaxs="i",yaxs="i",lwd=1)
+plot(crop(tmwb,extent(vz0)),col="aliceblue",border="grey",ylim=c(0.6526045,13))
+plot(vz0,border="maroon",col="white",ylim=c(0,12),add=T)
+plot(CNEB)
+plot(subset(CNEB,cdg %in% subset(CNEB.nm,UM %in% 1)$cdg),add=T,border="grey77")
+plot(subset(CNEB,cdg %in%  trans.info$CNEB),col=1,add=T)
+text(CNEB[match(trans.info$CNEB,CNEB@data$cdg),],trans.info$NM,col="white",cex=.7)
+text(-70,4.8,"Colombia")
+text(-61,2,"Brazil")
+text(-66,12.5,"Caribbean Sea")
+axis(2,seq(0,12,by=2),sprintf("%02s°N",seq(0,12,by=2)))
+axis(1,seq(-74,-58,by=2),sprintf("%02s°W",abs(seq(-74,-58,by=2))))
+scalebar(200,xy=c(-72,3),type="bar",divs=2,below="km",lonlat=T)
+##dev.off()
+@ 
+\setkeys{Gin}{width=0.6\textwidth}
+
+Standardized field sampling protocols for birds was implemented along a 40 km roadside transect within each cell. Two surveys were performed during two consecutive days in each transect: on the first day, 3-min point counts were performed at 50 stops, 800m apart. On the second day, cumulative species lists were recorded at a selection of 10 stops sampled for 9 min each, divided into three consecutive 3-min periods. Total sampling effort was 108 hours of bird surveys \citep{NM.A1.MM01,NeoMapasAves}
+
+
+	For this analysis we built detection histories for each psittacids species recorded by NeoMapas. We considered each stop as a ``site'' ($i$; 1351 sites, 50 stops across 27 transects), and each timed survey period of 3 min as a ``observation'' ($j$), with duration $d = 3 \mathrm{min}$. For the first day survey, detections were recorded as ``1'' and lack of detections as ``0''. For the cumulative list of the second day the detection history was filled with ``0'' until the first detection, and with null values ($N$) afterward. Thus valid detection histories for the second day are $1NN$, $01N$, $001$ and $000$, or $NNN$ if the site was not visited on the second day \citep{FerrerParis2013}. Time of the day was used as an observation covariate. Sites covariates were extracted from the spatial location of each site.
+
+<<ListaLoros,eval=true,echo=false>>=
+
+todos.loros <- c("Amazona amazonica","Amazona autumnalis",
+                 "Amazona barbadensis","Amazona festiva",
+                 "Amazona dufresniana","Amazona farinosa",
+                 "Amazona mercenaria","Amazona ochrocephala",
+                 "Ara ararauna","Ara chloroptera","Ara macao",
+                 "Ara militaris","Ara severa",
+                 "Aratinga solstitialis",
+                 "Bolborhynchus lineola",
+                 "Brotogeris chrysopterus","Brotogeris cyanoptera",
+                 "Brotogeris jugularis","Deroptyus accipitrinus",
+                 "Ara nobilis","Aratinga pertinax","Forpus conspicillatus",
+                 "Forpus sclateri","Forpus passerinus",
+                 "Hapalopsittaca amazonina","Nannopsittaca panychlora",
+                 "Ara manilata","Pionites melanocephala","Pionus chalcopterus",
+                 "Pionus fuscus","Pionus menstruus","Pionus seniloides",
+                 "Pionus sordidus","Aratinga acuticaudata",
+                 "Aratinga leocophthalma","Aratinga wagleri",
+                 "Pionopsitta barrabandi","Pionopsitta caica",
+                 "Pionopsitta pyrilia",
+                 "Pyrrhura leucotis",
+                 "Pyrrhura egregia","Pyrrhura leucotis","Pyrrhura hoematotis",
+                 "Pyrrhura melanura","Pyrrhura picta","Pyrrhura rhodocephala",
+                 "Touit batavica","Touit dilectissima","Touit huetii",
+                 "Touit purpurata")
+
+alt.loros <- c("Amazona amazonica","Amazona autumnalis","Amazona barbadensis",
+               "Amazona bodini","Amazona dufresniana","Amazona farinosa",
+               "Amazona mercenarius","Amazona ochrocephala",
+               "Ara ararauna","Ara chloropterus","Ara macao","Ara militaris",
+               "Ara severus","Aratinga solstitialis","Bolborhynchus lineola",
+               "Brotogeris chrysoptera","Brotogeris cyanoptera",
+               "Brotogeris jugularis",
+               "Deroptyus accipitrinus","Diopsittaca nobilis",
+               "Eupsittula pertinax",
+               "Forpus conspicillatus",
+               "Forpus modestus","Forpus passerinus",
+               "Hapalopsittaca amazonina","Nannopsittaca panychlora",
+               "Orthopsittaca manilatus",
+               "Pionites melanocephala",
+               "Pionus chalcopterus","Pionus fuscus","Pionus menstruus",
+               "Pionus seniloides","Pionus sordidus",
+               "Thectocercus acuticaudatus",
+               "Psittacara leucophthalmus","Psittacara wagleri",
+               "Pyrilia barrabandi","Pyrilia caica","Pyrilia pyrilia",
+               "Pyrrhura caeruleiceps","Pyrrhura egregia","Pyrrhura emma",
+               "Pyrrhura hoematotis","Pyrrhura melanura","Pyrrhura picta",
+               "Pyrrhura rhodocephala","Touit batavica","Touit dilectissima",
+               "Touit huetii","Touit purpurata","Aratinga leucophthalmus",
+               "Forpus passerinus viridissimus","Amazona aestiva",
+               "Pionites melanocephalus","Amazona leucocephala",
+               "Orthopsittaca manilata","Psittacara acuticaudatus",
+               "Aratinga jandaya","Aratinga leucophtalmus",
+               "Aratinga mitrata","Aratinga wagleri transilis",
+               "Touit batavicus","Touit dilectissimus","Touit purpuratus")
+
+@ 
+
+
+
+<<MapasBirdLife,eval=true,echo=false>>=
+
+if (!exists("mexp")) {
+    e <- extent(rpre)
+    mexp <- data.frame()
+    gis.data <- sprintf("%s/distribucion/BirdLife/Psittacidae",gis.dir)
+    
+    for (shp in dir(gis.data,pattern="shp",full.names=F)) {
+        mi.spp <- sub("_"," ",sub("_[0-9]+.shp","",shp))
+        if (mi.spp %in% c(todos.loros,alt.loros)) {
+            tmp <- crop(shapefile(sprintf("%s/%s",gis.data,shp)),e)
+            if (!is.null(tmp)) {
+                nms <- table(muestreos$NM[extract(tmp,muestreos[,c("V2","V1")])$PRESENCE %in% 1])
+                if(length(nms)>0)
+                    mexp <- rbind(mexp,
+                                  data.frame(spp=mi.spp,
+                                         NM=nms))
+                print(tail(mexp))
+            }
+        }
+        
+    }
+
+    names(mexp) <- c("spp","NM","freq")
+    ##mexp$spp %in% c(alt.loros,todos.loros)
+    ##table(unique(mexp$spp) %in% c(alt.loros,todos.loros))
+    ## Aratinga solsticialis y Forpus conspicillatus no se solapan
+    mexp$aspp <- sapply(as.character(mexp$spp),function(x) {y <- strsplit(x," ")[[1]]; paste(substr(y[1],1,4),substr(y[2],1,4),sep="_")})
+    
+    mexp$aspp <- sub("Psit_acut","Arat_acut",mexp$aspp)
+    mexp$aspp <- sub("Psit_leuc","Arat_leuc",mexp$aspp)
+    mexp$aspp <- sub("Eups_pert","Arat_pert",mexp$aspp)
+    mexp$aspp <- sub("Psit_wagl","Arat_wagl",mexp$aspp)
+    mexp$aspp <- sub("Pyri_barr","Pion_barr",mexp$aspp)
+}
+@ 
+
+%Tabla con los registros de 50 especies de Psittacidae en Venezuela
+
+<<ttl2010,echo=false,eval=true>>=
+if (!exists("ttl.2010")) {
+    ttl <- ttl.2010 <- c()
+    for (k in 1:length(todos.loros)) {
+        ttl <- c(ttl,sum(grepl(todos.loros[k],aves@data$species) |
+                             grepl(alt.loros[k],aves@data$species) |
+                                 grepl(todos.loros[k],aves@data$scientificName) |
+                                     grepl(alt.loros[k],aves@data$scientificName)))
+        ss <- aves@data$year %in% 2008:2012 & !(aves@data$collectionCode %in% "doi:10.1594/PANGAEA.803430")
+        ttl.2010 <- c(ttl.2010,sum(grepl(todos.loros[k],aves@data$species[ss]) |
+                                       grepl(alt.loros[k],aves@data$species[ss]) |
+                                           grepl(todos.loros[k],aves@data$scientificName[ss]) |
+                         grepl(alt.loros[k],aves@data$scientificName[ss])))
+        
+    }
+}
+
+##aggregate(mexp$freq,list(mexp$spp),sum)
+
+rsm.loros <- data.frame(old.spp=todos.loros,
+                        ##spp=alt.loros[1:50],
+                        aspp=sapply(alt.loros[1:50],function(x) {
+                            y <- strsplit(x," ")[[1]]
+                            paste(substr(y[1],1,4),substr(y[2],1,4),sep="_")
+                        }),
+                        GBIF=ttl,GBIF.2010=ttl.2010,stringsAsFactors=F)
+
+rsm.loros$aspp <- sub("Thec_acut","Arat_acut",rsm.loros$aspp)
+rsm.loros$aspp <- sub("Psit_leuc","Arat_leuc",rsm.loros$aspp)
+rsm.loros$aspp <- sub("Eups_pert","Arat_pert",rsm.loros$aspp)
+rsm.loros$aspp <- sub("Psit_wagl","Arat_wagl",rsm.loros$aspp)
+rsm.loros$aspp <- sub("Pyri_barr","Pion_barr",rsm.loros$aspp)
+
+
+@ 
+
+<<eval=false,echo=false>>=
+alt.loros[!alt.loros %in% mexp$spp]
+table(mexp$exp>0)
+table(sub("_"," ",subset(mexp,exp>0)$spp) %in% alt.loros)
+@ 
+
+%Versión nueva de Observation covariate matriz
+
+<<obsC,echo=false>>=
+if (!exists("obsC")) {
+    ## importante, fecha corregida el 19/10/2015
+    mt1 <- tapply(NM.m1$hrs,list(factor(NM.m1$idpunto,levels=muestreos$V3)),max)
+    mt2 <- tapply(NM.m2$hrs,list(NM.m2$idpunto,NM.m2$Lapso),max)
+    mt2[,1] <- rowMeans(mt2,na.rm=T)
+    mt2[,2] <- mt2[,1]+3/(60*24)
+    mt2[,3] <- mt2[,2]+3/(60*24)
+    
+    obsC <- merge(mt1,mt2,by="row.names",all=T)
+    
+    obsC <- obsC[match(avs.ll$V3,obsC$Row.names),]
+}
+@ 
+
+\subsection{Sites covariates}
+
+
+	In order to get representative data on climatic and vegetation condition at the time of the survey, we matched the location and date of each observations with time-series of environmental variables derived from the Moderate Resolution Radio Spectrometer (MODIS) sensors in Terra-Satellites and and queried using the global MODIS Subsetting Tool (Land Processes Distributed Active Archive Center), and the Climate Hazards Group InfraRed Precipitation with Station data archive (CHIRPS version 2.0). We calculated the representative value of the variable for the year prior to the sampling time (approx. march 2009 - march 2010).
+        We used the following variables:
+        
+
+        \subsubsection{Total annual precipitation}
+        Total precipitation of the year prior to NM sampling according to Chirps v 2.0\citep[pre01]{Funk2015}
+
+
+<<Precipitation,fig=true,echo=false,width=6.15,height=5>>=
+plot(pre01,col=brewer.pal(9,"Spectral"))
+plot(vz0,add=T)
+
+@ 
+
+      \subsubsection{Potential Evapotranspiration}
+Total Potential Evapotranspiration of the year prior to NM \citep[pet01]{ModisPET}.
+
+<<PET,fig=true,echo=false,width=6.15,height=5>>=
+plot(pet01,col=brewer.pal(9,"Spectral"))
+plot(vz0,add=T)
+
+@ 
+
+
+      \subsubsection{Land Surface Temperature}
+        
+Mean LST of the year prior to NM \citep[dT01]{ModisLST}.
+
+<<Temperature,fig=true,echo=false,width=6.15,height=5>>=
+
+plot(dT01,col=rev(brewer.pal(9,"Spectral")))
+plot(vz0,add=T)
+
+@ 
+
+      \subsubsection{Enhanced Vegetation Index}
+
+
+Mean EVI of the year prior to NM sampling \citep[evi01]{Huete2002}, :
+
+<<EVI,fig=true,echo=false,width=6.15,height=5>>=
+
+plot(evi01,col=brewer.pal(9,"Spectral"))
+plot(vz0,add=T)
+
+@ 
+
+\subsection{Occupancy models}
+
+	We used a single-season occupancy model based on zero-inflated binomial models \citep{Mal.06a} to estimate a probability of occurrence for species detected in the surveys ($\Psi$). The occupancy state ($z_i$) of site $i$ was modeled as $z_i ~ \mathrm{Bernoulli} (\Psi_i)$, while the observation process was modeled as $y_{ij}|z_i ~ \mathrm{Bernoulli} (z_i * p_{ij})$ in which $p_ij$ represented site and occasion specific detection probability. Covariates of $\Psi_i$ (site covariates) and $p_{ij}$ (observation covariates) were modeled using the logit link.%(Fiske & Chandler, 2011)⁠.  
+	
+        We fitted eight models representing different combinations of covariates for probability of detection and probability of occurrence:
+\[
+        \begin{array}{lcl}
+  \mathrm{Name} & \mathrm{Detection} & \mathrm{Presence}\\
+\hline
+  \mathrm{nulo} & p \sim 1 & \Psi \sim 1\\
+  p(h)Psi(.) & p \sim h & \Psi \sim 1\\
+  p(.)Psi(V) & p \sim 1 & \Psi \sim \mathrm{evi01} + \mathrm{evi01}^2\\
+  p(h)Psi(V) & p \sim h & \Psi \sim \mathrm{evi01} + \mathrm{evi01}^2\\
+  p(.)Psi(C) & p \sim 1 & \Psi \sim \mathrm{dT01} + \mathrm{dT01}^2 + \mathrm{pre01} + \mathrm{pre01}^2 + \mathrm{pet01} + \mathrm{pet01}^2\\
+  p(h)Psi(C) & p \sim h & \Psi \sim \mathrm{dT01} + \mathrm{dT01}^2 + \mathrm{pre01} + \mathrm{pre01}^2 + \mathrm{pet01} + \mathrm{pet01}^2\\
+
+  p(.)Psi(VC) & p \sim h & \Psi \sim 
+  \mathrm{evi01} + \mathrm{evi01}^2 + \mathrm{dT01} + \mathrm{dT01}^2 + \mathrm{pre01} + \mathrm{pre01}^2 + \mathrm{pet01} + \mathrm{pet01}^2\\
+  p(h)Psi(VC) & p \sim h & \Psi \sim 
+  \mathrm{evi01} + \mathrm{evi01}^2 + \mathrm{dT01} + \mathrm{dT01}^2 + \mathrm{pre01} + \mathrm{pre01}^2 + \mathrm{pet01} + \mathrm{pet01}^2\\
+
+  \end{array}
+\]
+
+        
+	We evaluated the individual performance of each model using the corrected Akaike Information Criterion (AICc). Then, we used the model with the best performance for each species to explain the lack of detections across the survey sites. For the sites without detections, we calculated the conditional probability of occurrence given that the species was not detected using empirical bayes methods \citep{Mal.06a}.
+        This probability ($\Psi_{\mathrm{condl}}$) considers two components: whether sampling effort was enough to detect the species at least once conditional on its presence ($p* = 1 - \prod (1 - p)$), and the unconditional probability of occurrence given the values of the site covariates ($\hat{\Psi}$). 
+        %computes the conditional distribution of occurrence given the data and the estimates of the fixed effects, Pr(z(i)=1 | y(i,j), psi(i), p(i,j))
+%Empirical Bayes methods can underestimate the variance of the     posterior distribution because they do not account for uncertainty     in the hyperparameters (lambda or psi). Eventually, we hope to add     methods to account for the uncertainty of the hyperparameters.
+%    Note also that the posterior mode appears to exhibit some bias as     an estimator or abundance. Consider using the posterior mean     instead, even though it will not be an integer in general. More     simulation studies are needed to evaluate the performance of     empirical Bayes methods for these models.
+
+        
+        We used the unmarked, raster, and AICcmodavg packages of \emph{R} to fit the models \citep{pqt::Rbase,pqt::unmarked,pqt::raster,pqt::AICcmodavg}
+ 
+
+<<sitC,echo=false>>=
+if (!exists("sitC")) {
+    ##all(avs.ll$V3==obs1$Row.names)
+    sitC <- data.frame(idpunto=avs.ll$V3)
+    for (k in unique(avs.ll$fPET)) {
+        wch <- grep(gsub("M",".",k),colnames(avs.chirps))
+        sitC[avs.ll$fPET %in% k,"pre01"] <- apply(avs.chirps[avs.ll$fPET %in% k,(wch-11):wch],1,sum,na.rm=T)
+    sitC[avs.ll$fPET %in% k,"pre02"] <- apply(avs.chirps[avs.ll$fPET %in% k,(wch-11):wch],1,mad,na.rm=T)
+    wch <- grep(k,colnames(avs.PET))
+    sitC[avs.ll$fPET %in% k,"pet01"] <- apply(avs.PET[avs.ll$fPET %in% k,(wch-11):wch],1,sum,na.rm=T)
+    sitC[avs.ll$fPET %in% k,"pet02"] <- apply(avs.PET[avs.ll$fPET %in% k,(wch-11):wch],1,mad,na.rm=T)
+
+    wch <- grep(k,colnames(avs.ET))
+    sitC[avs.ll$fPET %in% k,"aet01"] <- apply(avs.ET[avs.ll$fPET %in% k,(wch-11):wch],1,sum,na.rm=T)
+    sitC[avs.ll$fPET %in% k,"aet02"] <- apply(avs.ET[avs.ll$fPET %in% k,(wch-11):wch],1,mad,na.rm=T)
+}
+sitC$pet01 <- ifelse(sitC$pet01 %in% 0,NA,sitC$pet01)
+sitC$pet02 <- ifelse(sitC$pet01 %in% 0,NA,sitC$pet02)
+sitC$aet01 <- ifelse(sitC$aet01 %in% 0,NA,sitC$aet01)
+sitC$aet02 <- ifelse(sitC$aet01 %in% 0,NA,sitC$aet02)
+
+for (k in unique(avs.ll$fEVI)) {
+    wch <- grep(k,colnames(avs.EVI))
+    sitC[avs.ll$fEVI %in% k,"evi01"] <- apply(avs.EVI[avs.ll$fEVI %in% k,(wch-22):wch],1,median)
+    sitC[avs.ll$fEVI %in% k,"evi02"] <- apply(avs.EVI[avs.ll$fEVI %in% k,(wch-22):wch],1,mad)
+    wch <- grep(k,colnames(avs.NDVI))
+    sitC[avs.ll$fEVI %in% k,"ndvi01"] <- apply(avs.NDVI[avs.ll$fEVI %in% k,(wch-22):wch],1,median)
+    sitC[avs.ll$fEVI %in% k,"ndvi02"] <- apply(avs.NDVI[avs.ll$fEVI %in% k,(wch-22):wch],1,mad)
+}
+
+
+for (k in unique(avs.ll$fLST)) {
+    wch <- grep(k,colnames(avs.LSTn))
+    sitC[avs.ll$fLST %in% k,"nT01"] <- apply(avs.LSTn[avs.ll$fLST %in% k,(wch-47):wch],1,median,na.rm=T)
+    sitC[avs.ll$fLST %in% k,"nT02"] <- apply(avs.LSTn[avs.ll$fLST %in% k,(wch-47):wch],1,mad,na.rm=T)
+
+    wch <- grep(k,colnames(avs.LSTd))
+    sitC[avs.ll$fLST %in% k,"dT01"] <- apply(avs.LSTd[avs.ll$fLST %in% k,(wch-47):wch],1,median,na.rm=T)
+    sitC[avs.ll$fLST %in% k,"dT02"] <- apply(avs.LSTd[avs.ll$fLST %in% k,(wch-47):wch],1,mad,na.rm=T)
+
+    wch <- grep(k,colnames(avs.Lai))
+    sitC[avs.ll$fLST %in% k,"Lai01"] <- apply(avs.Lai[avs.ll$fLST %in% k,(wch-47):wch],1,median,na.rm=T)
+    sitC[avs.ll$fLST %in% k,"Lai02"] <- apply(avs.Lai[avs.ll$fLST %in% k,(wch-47):wch],1,mad,na.rm=T)
+
+    wch <- grep(k,colnames(avs.Fpar))
+    sitC[avs.ll$fLST %in% k,"Fpar01"] <- apply(avs.Fpar[avs.ll$fLST %in% k,(wch-47):wch],1,median,na.rm=T)
+    sitC[avs.ll$fLST %in% k,"Fpar02"] <- apply(avs.Fpar[avs.ll$fLST %in% k,(wch-47):wch],1,mad,na.rm=T)
+
+}
+}
+@ 
+
+%Standardize site covariates
+<<sitCV,echo=false,results=hide>>=
+
+if (!exists("sitCV")) {
+    
+    colSums(is.na(sitC))
+    stNM <- sitC
+    fiX <- avs.ll$NM
+    na.fix <- rfImpute(sitC[,-1],factor(fiX))
+    mus <- apply(na.fix[,-1],2,mean,na.rm=T)
+    sgs <- apply(na.fix[,-1],2,sd,na.rm=T)
+    sitCV <- sitC
+    for (nn in names(mus)) {
+        sitCV[,nn] <-     (na.fix[,nn]-mus[nn])/sgs[nn]
+    }
+}
+
+if (!exists("sVars")) {
+    mVars <- stack(pre01,dT01,pet01,evi01)
+    names(mVars) <- c("pre01","dT01","pet01","evi01")
+    sVars <- mVars
+    for (nn in names(sVars)) {
+        values(sVars)[,nn] <-     (values(mVars)[,nn]-mus[nn])/sgs[nn]
+    }
+}
+
+@ 
+
+%detection matrices
+<<deteccionMatrix,echo=false>>=
+if(!exists("Pion_barr.mtz")) {
+
+generos <- c("Amazona","Ara","Aratinga","Bolborhynchus","Brotogeris","Deroptyus","Diopsittaca","Eupsittula","Forpus","Hapalopsittaca","Nannopsittaca","Orthopsittaca","Pionites","Pionus","Psilopsiagon","Psittacara","Pionopsitta","Pyrrhura","Touit")
+lst.spp <- c()
+for (gg in generos)
+    lst.spp <- unique(c(lst.spp,grep (gg,spp.aves$Latname)))
+
+lst.spp <- lst.spp[sapply(spp.aves[lst.spp,"Latname"],function(x) strsplit(x," ")[[1]][1]) %in% generos]
+
+acdgs <- unique(c(NM.m1$Especieid[NM.m1$Especieid %in% spp.aves[lst.spp,"N_ave"]],NM.m2$Especieid[NM.m2$Especieid %in% spp.aves[lst.spp,"N_ave"]]))
+
+nmbrs <- c()
+for (acdg in acdgs) {
+    mtc <- NM.m1$Especieid %in% acdg
+    mt1 <- tapply(mtc,list(factor(NM.m1$idpunto,levels=muestreos$V3)),max)##[,2,drop=F]
+    mtc <- NM.m2$Especieid %in% acdg
+    mt2 <- tapply(mtc,list(NM.m2$idpunto,NM.m2$Lapso),max)
+    mt2[is.na(mt2)] <- 0
+    mtz <- merge(mt1,mt2,by="row.names",all=T)
+
+    
+    colnames(mtz) <- c("idpunto","M1","L1","L2","L3")
+    mtz$M1[is.na(mtz$M1)] <- 0
+    mtz$L2[mtz$L1 %in% 1] <- NA
+    mtz$L3[mtz$L1 %in% 1 | mtz$L2 %in% 1] <- NA
+
+    mtz <- mtz[match(avs.ll$V3,mtz$idpunto),]
+
+    assign(sprintf("%s.mtz",
+                   sapply(subset(spp.aves,N_ave %in% acdg)$Latname,function(x) {
+                       y <- strsplit(x," ")[[1]]
+                       paste(substr(y[1],1,4),substr(y[2],1,4),sep="_")
+                   })),
+           ##abbreviate(subset(spp.aves,N_ave %in% acdg)$Latname)),
+           mtz)
+    nmbrs <- c(nmbrs,subset(spp.aves,N_ave %in% acdg)$Latname)
+}
+}
+@ 
+
+
+<<ListMatrices,eval=true,echo=false>>=
+
+for (k in ls(pattern="\\.mtz")) {
+
+    rsm.loros[match(gsub(".mtz","",k),rsm.loros$aspp),"NM.M1"] <- sum(get(k)[,2],na.rm=T)
+    rsm.loros[match(gsub(".mtz","",k),rsm.loros$aspp),"NM.L1"] <- sum(get(k)[,3],na.rm=T)
+    rsm.loros[match(gsub(".mtz","",k),rsm.loros$aspp),"NM.L2"] <- sum(get(k)[,4],na.rm=T)
+    rsm.loros[match(gsub(".mtz","",k),rsm.loros$aspp),"NM.L3"] <- sum(get(k)[,5],na.rm=T)
+}
+##rsm.loros[,-1]
+
+@ 
+
+<<FitModels,eval=true,echo=false>>=
+lst.spp <- c("Amaz_amaz", "Amaz_barb", "Amaz_fari", "Amaz_ochr", "Ara_chlo",
+             "Ara_maca", "Ara_mili", "Ara_seve", "Arat_acut", "Arat_leuc",
+             "Arat_pert", "Arat_wagl", "Brot_chry", "Brot_jugu", "Diop_nobi",
+             "Forp_pass", "Nann_pany", "Orth_mani", "Pion_barr", "Pion_mela",
+             "Pion_mens", "Pyrr_egre", "Pyrr_hoem", "Pyrr_mela", "Pyrr_pict",
+             "Pyrr_rhod")
+
+
+##lst.spp[!lst.spp %in% mexp$aspp]
+
+no.removal <- F
+for (spp in lst.spp) {
+    
+    if(!exists(sprintf("%s.fL",spp))) {
+        mtz <- get(sprintf("%s.mtz",spp))
+        if (no.removal) {
+            ## alternativa sin removal design
+            mtz <- cbind(mtz[,2],rowSums(mtz[,3:5],na.rm=T))
+            ##obs <- cbind(obs1[,2:3])
+            obs <- cbind(obsC[,2],rowMeans(obsC[,3:5],na.rm=F)) ## ya deben tener el mismo orden segun avs.ll
+            mtz[is.na(obs)] <- NA
+            UMF <- unmarkedFrameOccu(mtz,
+                                     siteCovs=sitCV,
+                                     ##siteCovs=muestreos,
+                                     obsCovs=list(hora=obs,
+                                         dur=col(obs)))
+            UMF@obsCovs$dur <- c(3,9)[UMF@obsCovs$dur]
+        ## seleccionar solo los puntos dentro del área de distribución esperada
+            os <- seq(along=avs.ll$NM)[avs.ll$NM %in% unique(c(avs.ll[rowSums(mtz,na.rm=T)>0,"NM"], as.character(mexp[mexp$aspp %in% tolower(spp),"NM"]))) & !is.na(mtz[,1])]
+            ##os <- seq(along=muestreos$NM)[muestreos$NM %in% unique(c(muestreos[rowSums(mtz,na.rm=T)>0,"NM"], as.character(mexp[mexp$aspp %in% tolower(spp),"NM"]))) & !is.na(mtz[,1])]
+
+        } else {
+
+            mtz[is.na(obsC)] <- NA
+            UMF <- unmarkedFrameOccu(mtz[,-1],
+                                     siteCovs=sitCV,
+                                     obsCovs=list(hora=obsC[,-1]))
+        ## seleccionar solo los puntos dentro del área de distribución esperada
+            os <- seq(along=avs.ll$NM)[
+                avs.ll$NM %in% unique(c(avs.ll@data[rowSums(mtz[,-1],na.rm=T)>0,"NM"], as.character(mexp[tolower(mexp$aspp) %in% tolower(spp),"NM"]))) & !is.na(mtz$M1)]
+
+        }
+
+        
+        ##        fm <- occu(~ hora ~ LSTd, UMF[ssO,])
+        ##        os <- fm@sitesRemoved
+        
+        fL <- list("nulo"=try(occu(~ 1 ~ 1, UMF[os,])),
+                   "p(h)Psi(.)"=try(occu(~ hora ~ 1, UMF[os,])),
+                   "p(.)Psi(V)"=try(occu(~ 1 ~ evi01+I(evi01^2), UMF[os,])),
+                   "p(h)Psi(V)"=try(occu(~ hora ~ evi01+I(evi01^2) , UMF[os,])),
+                   "p(.)Psi(C)"=try(occu(~ 1 ~ pet01+I(pet01^2) + dT01+I(dT01^2) + pre01+I(pre01^2), UMF[os,])),
+                   "p(h)Psi(C)"=try(occu(~ hora ~ pet01+I(pet01^2) + dT01+I(dT01^2) + pre01+I(pre01^2), UMF[os,])),
+
+                   "p(.)Psi(VC)"=try(occu(~ 1 ~ evi01+I(evi01^2) + pet01+I(pet01^2) + dT01+I(dT01^2) + pre01+I(pre01^2), UMF[os,])),
+                   "p(h)Psi(VC)"=try(occu(~ hora ~ evi01+I(evi01^2) + pet01+I(pet01^2) + dT01+I(dT01^2) + pre01+I(pre01^2), UMF[os,]))
+)
+        
+        qq <- sapply(fL,function(x) {
+                         if (any(class(x) %in% "try-error")) {
+                             return(FALSE)
+                         } else {
+                             return(x@opt$convergence==0 & sum(abs(coef(x))>8)<2)
+                         }
+                     })
+        
+        assign(sprintf("%s.fL",spp),fL[qq])
+        if (any(qq)) {
+            ms.tab <- aictab(fL[qq],names(fL)[qq])
+            assign(sprintf("%s.ms",spp),ms.tab)
+        }
+     }
+}
+
+
+@ 
+
+
+<<rsltsMS,eval=true,echo=false>>=
+
+## ls(pattern="\\.ms$")
+if (!exists("rslts")) {
+    rslts <- data.frame()
+    for (gg in ls(pattern="\\.ms$")) {
+        ms.tab <- get(gg)
+        rslts <- rbind(rslts,
+                       data.frame(spp=sub(".ms","",gg),mod=ms.tab$Modnames,
+                                  n=nrow(get(sub(".ms",".fL",gg))[[1]]@data@y),
+                                  dtt= sum(rowSums(get(sub(".ms",".fL",gg))[[1]]@data@y,na.rm=T)>0),
+                                  AICc=ms.tab$AICc,
+                                  Delta.AICc=round(ms.tab$Delta_AICc,2),
+                                  AICw=round(ms.tab$AICcWt,3),
+                                  LL=round(ms.tab$LL,2)))
+    }
+}
+##with(rslts,aggregate(AICw,list(mod),sum))
+##with(rslts,aggregate(AICw,list(mod),function(x) sum(!is.na(x))))
+##with(rslts,aggregate(AICw,list(spp),function(x) sum(!is.na(x))))
+
+##
+##lst.spp[!lst.spp %in% rslts$spp]
+
+
+@ 
+%rslts es la tabla 2, buscar datos de la tabla 1
+
+<<tablaAIC,eval=true,echo=false>>=
+if (!exists("tabla.AIC")) {
+    ##round(with(rslts,tapply(AICw,list(spp,mod),sum)),3)
+    tabla.AIC <- round(with(rslts,
+                            tapply(AICw,
+                                   list(spp,
+                                        factor(mod,
+                                           levels=c("nulo","p(h)Psi(.)",
+                                               "p(.)Psi(C)","p(h)Psi(C)",
+                                               "p(.)Psi(V)","p(h)Psi(V)",
+                                               "p(.)Psi(VC)","p(h)Psi(VC)")))
+                                  ,sum)),3)
+    
+    
+    for (gg in ls(pattern="\\.ms$")) {
+        fL <- get(sub(".ms",".fL",gg))
+        nwdt <- data.frame(hora=seq(0.25,1,length=60),dur=3)
+        prds <- modavgPred(fL,names(fL),newdata=nwdt,
+                           type = "link", parm.type = "detect")
+        
+        pmtz <- data.frame(lci=boot::inv.logit(prds$mod.avg.pred-(prds$uncond.se*1.96)),
+                           mu=boot::inv.logit(prds$mod.avg.pred),
+                           uci=boot::inv.logit(prds$mod.avg.pred+(prds$uncond.se*1.96)))
+        assign(sub(".ms",".pmtz",gg),pmtz)
+    }
+}
+
+
+@ 
+
+%Este es un gráfico
+
+<<Grafico1,echo=false,eval=false,fig=false,width=5,height=8>>=
+
+layout(matrix(1:10,ncol=2))
+par(mar=c(5,4,1,1))
+
+## rapid decay
+matplot(nwdt$hora,Amaz_amaz.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Pion_mens.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Arat_leuc.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Ara_mili.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+
+## nearly constant
+matplot(nwdt$hora,Arat_pert.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Forp_pass.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Ara_maca.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Brot_jugu.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+## increasing
+matplot(nwdt$hora,Pyrr_pict.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+
+
+@ 
+
+%Este es otro: las especies que no tienen tendencia por hora...
+
+<<Grafico2,eval=false,fig=false,echo=false>>=
+
+layout(matrix(1:10,ncol=2))
+matplot(nwdt$hora,Diop_nobi.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+
+matplot(nwdt$hora,Orth_mani.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Pion_barr.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Pyrr_mela.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+
+matplot(nwdt$hora,Arat_wagl.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Pyrr_egre.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Pyrr_rhod.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+
+## very low
+matplot(nwdt$hora,Amaz_fari.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+matplot(nwdt$hora,Ara_chlo.pmtz,lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+
+@ 
+
+<<eval=true,echo=false>>=
+
+if (!exists("dprob")) {
+    rowSums(tabla.AIC[,grep("h",colnames(tabla.AIC))],na.rm=T)
+    
+    
+    ##
+    tt <- subset(rslts,Delta.AICc==0)
+table(tt$mod)
+    
+    fq <- matrix(nrow=nrow(tt),ncol=4)
+for (k in 1:nrow(tt)) {
+    fL <- get(sprintf("%s.fL",tt[k,"spp"]))
+    re <- ranef(fL[[as.character(tt[k,"mod"])]])
+    fq[k,] <-  table(cut(bup(re, stat="mean"),c(-1,.05,.5,.95,2)))
+    
+}
+
+dprob <- data.frame()
+for (k in 1:nrow(tt)) {
+    fL <- get(sprintf("%s.fL",tt[k,"spp"]))
+    mtz <- fL[[as.character(tt[k,"mod"])]]@data@y
+    miP <- getP(fL[[as.character(tt[k,"mod"])]])
+    miP[is.na(mtz)] <- NA
+    p.aus <- apply(1-miP,1,prod,na.rm=T)
+    y <- rowSums(mtz,na.rm=T)
+    pre.Psi <- predict(fL[[as.character(tt[k,"mod"])]],"state")[,1]
+    post.Psi <- (pre.Psi*p.aus)/((pre.Psi*p.aus) + (1-pre.Psi))
+    dprob <- rbind(dprob,data.frame(spp=tt[k,"spp"],
+                                    pre.Psi=pre.Psi[y==0],
+                                    p.aus=p.aus[y==0],
+                                    post.Psi=post.Psi[y==0]))
+    
+}
+
+mprob <- with(dprob,aggregate(post.Psi,by=list(spp),median,na.rm=T))
+mprob$o <- order(mprob$x)
+dprob <- dprob[order(dprob$spp),]
+dprob$spp <- factor(dprob$spp,levels=levels(dprob$spp)[mprob$o])
+}
+@ 
+
+%Falta hacer una figura sacando las especies con p y Psi extremos
+
+<<Figuras3,eval=false,fig=false,echo=false>>=
+##png(file="Psi_previo_y_post.png",bg="aliceblue",width=700,height=500,pointsize=14)
+##para 82 milimetros (una columna): 82*0.03937*600
+##para 2/3 de columan es 2800...
+tiff(filename = "FerrerSanchez_Figure2.tiff", width = 2800, height = 2800*.84, units = "px", pointsize = 64, compression = c("jpeg"), bg = "white")
+
+layout(1:2)
+par(mar=c(0.5,5,0.5,0.5),oma=c(10,0,0,0),lwd=4)
+boxplot((1-p.aus)~spp,dprob,las=2,ylim=c(0,1),axes=F,ylab="p*",xlim=c(5,17))##ylab=expression(p==(1-Pi[j=1]^K (1-p_j))))
+box()
+abline(h=c(0.10),lty=3)
+axis(2)
+mtext("(a)",2,line=3,las=2,at=c(3,.95),cex=1.8)
+
+##boxplot(pre.Psi~spp,dprob,las=2,ylim=c(0,1),axes=F,ylab=expression(hat(Psi)))
+##axis(2)
+##abline(h=c(0.2),lty=3)
+##box()
+boxplot(post.Psi~spp,dprob,las=2,ylim=c(0,1),ylab=expression(Psi[condl]),axes=F,xlim=c(5,17))
+axis(1,1:25,as.character(mexp$spp[match(levels(dprob$spp),mexp$aspp)]),font=3,las=2,cex.axis=.85)
+abline(h=c(0.10),lty=3)
+axis(2)
+box()
+mtext("(b)",2,line=3,las=2,at=c(3,.95),cex=1.8)
+
+dev.off()
+@ 
+
+<<eval=false,echo=false,fig=false>>=
+
+sim.prob <- data.frame()
+for (k in 1:nrow(tt)) {
+    fL <- get(sprintf("%s.fL",tt[k,"spp"]))
+    y <- rowSums(fL[[as.character(tt[k,"mod"])]]@data@y,na.rm=T)
+    pre.Psi <- predict(fL[[as.character(tt[k,"mod"])]],"state")[,1]
+
+    maxcol <- 8
+    for (maxhr in c(9:12)) {
+        nwdt <- data.frame(hora=runif(length(y)*maxcol,5.5/24,maxhr/24))
+        m0 <-matrix(predict(fL[[as.character(tt[k,"mod"])]],"det",
+                            newdata=nwdt)$Predicted,ncol=maxcol,byrow=T)
+        for (ncol in 2:maxcol) {
+            p.new <- apply(1-m0[,1:ncol],1,prod)
+            new.Psi <- (pre.Psi*p.new)/(pre.Psi*p.new + (1-pre.Psi))
+            sim.prob <- rbind(sim.prob,data.frame(spp=tt[k,"spp"],
+                                                  hora.max=maxhr,
+                                                  n.mst=ncol,
+                                                  post.Psi=new.Psi[y==0]))
+        }
+    }
+}
+sim.prob <- rbind(sim.prob,data.frame(spp=dprob$spp,
+                       hora.max=0,
+                       n.mst=0,
+                       post.Psi=dprob$post.Psi))
+boxplot(post.Psi~sprintf("%02d %02d",hora.max,n.mst),sim.prob,las=2)
+abline(h=0.05,lty=3)
+abline(h=0.1425,lty=3)
+
+@ 
+
+
+<<eval=false,echo=false>>=
+
+##
+mm <- table(mexp$aspp)
+mm[!names(mm) %in% tt$spp]
+
+with(subset(mexp,!aspp %in% tt$spp),aggregate(freq,list(spp=spp),sum))
+
+
+
+## el muestreo actual representa 1.6 dias de muestreo
+
+
+
+
+##    matrix(,ncol=8,byrow=T)
+##                       fL[[as.character(tt[k,"mod"])]]@data@obsCovs)
+    s1 <- seq(1,nrow(nwdt),by=4)
+    s2 <- seq(2,nrow(nwdt),by=4)
+    s3 <- seq(3,nrow(nwdt),by=4)
+    s4 <- seq(4,nrow(nwdt),by=4)
+    h1 <- nwdt$hora[s1]
+    h2 <- nwdt$hora[-seq(1,nrow(nwdt),by=4)]
+    nwdt$hora <- NA
+    nwdt$hora[s1] <- h1
+    nwdt$hora[s2] <- rev(h1)
+    nwdt$hora[s3] <- h1
+    nwdt$hora[s4] <- rev(h1)
+
+
+        post.Psi <- (pre.Psi*p.aus)/(pre.Psi*p.aus + (1-pre.Psi))
+boxplot(post.Psi~spp,dprob,las=2,ylim=c(0,1))
+abline(h=0.05,lty=3)
+
+@ 
+
+
+<<eval=false,echo=false>>=
+
+ sum(dprob$post.Psi < 0.05,na.rm=T)
+sum(dprob$new.Psi[!is.na(dprob$new.Psi)] < 0.05,na.rm=T)
+
+
+
+cbind(tt[,1:4],fq)
+boxplot(bup(re, stat="mean")~Amaz_barb.fL[[1]]@data@siteCovs$NM)
+abline(h=0.05)
+
+table(confint(re, level=0.95)[,1] ,confint(re, level=0.95)[,2] ) ##95% CI
+
+subset(rslts,Delta.AICc==0 & grepl("V",mod))
+
+vWC <- data.frame(values(mVars))
+##colnames(vWC) <- sprintf("wbio%02d",1:19)
+ss <- rowSums(is.na(vWC))==0
+
+mu <- mean(muestreos[,"LST_Day_1km"],na.rm=T)
+sg <- sd(muestreos[,"LST_Day_1km"],na.rm=T)
+vWC[,"LSTd"] <- (vWC[,"LSTd"]-mu)/sg
+mu <- mean(muestreos[,"PET_1km"],na.rm=T)
+sg <- sd(muestreos[,"PET_1km"],na.rm=T)
+vWC[,"PET"] <- (vWC[,"PET"]-mu)/sg
+mu <- mean(muestreos[,"v250m_16_days_EVI"],na.rm=T)
+sg <- sd(muestreos[,"v250m_16_days_EVI"],na.rm=T)
+vWC[,"EVI"] <- (vWC[,"EVI"]-mu)/sg
+
+
+@ 
+
+<<eval=false,echo=false>>=
+
+for (mdl in c("p(.)Psi(VC)","p(h)Psi(VC)")) {
+    ssr <- subset(rslts,mod %in% c(mdl) & AICw>0.001)
+    for (k in 1:nrow(ssr)) {
+        psi <- raster(mVars,1)*NA
+        ##values(psi)[ss] <- prdPsi$Predicted
+        fL <- get(sprintf("%s.fL",ssr[k,"spp"]))
+        values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*with(vWC[ss,],rbind(1,EVI,EVI^2,PET,PET^2,LSTd,LSTd^2))))
+        assign(sprintf("%s.%s",ssr[k,"spp"],gsub("[()]","",mdl)),psi)
+    }
+}
+
+
+for (mdl in c("p(.)Psi(V)","p(h)Psi(V)")) {
+    ssr <- subset(rslts,mod %in% c(mdl) & AICw>0.001)
+    for (k in 1:nrow(ssr)) {
+        psi <- raster(mVars,1)*NA
+        ##values(psi)[ss] <- prdPsi$Predicted
+        fL <- get(sprintf("%s.fL",ssr[k,"spp"]))
+        values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*with(vWC[ss,],rbind(1,EVI,EVI^2))))
+        assign(sprintf("%s.%s",ssr[k,"spp"],gsub("[()]","",mdl)),psi)
+    }
+}
+
+
+@ 
+
+
+<<eval=false,echo=false>>=
+
+for (mdl in c("nulo","p(h)Psi(.)")) {
+    ssr <- subset(rslts,mod %in% c(mdl) & AICw>0.001)
+    for (k in 1:nrow(ssr)) {
+        psi <- raster(mVars,1)*NA
+        ##values(psi)[ss] <- prdPsi$Predicted
+        fL <- get(sprintf("%s.fL",ssr[k,"spp"]))
+        values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*with(vWC[ss,],rbind(1))))
+        assign(sprintf("%s.%s",ssr[k,"spp"],gsub("[()]","",mdl)),psi)
+    }
+}
+
+ls(pattern="Psi")
+
+@ 
+
+
+
+
+<<eval=false,echo=false>>=
+
+re <- ranef(Amaz_amaz.fL[["p(h)Psi(T)"]])
+ ## Extract all values in convenient formats
+post.df <- as(re, "data.frame")
+head(post.df)
+post.arr <- as(re, "array")
+     
+
+@ 
+
+
+<<eval=false,echo=false>>=
+
+## Best Unbiased Predictors
+##bup(re, stat="mean")           # Posterior mean
+table(confint(re, level=0.95)[,1] ,confint(re, level=0.95)[,2] ) ##95% CI
+
+(re <- ranef(Amaz_barb.fL[["p(h)Psi(T)"]]))
+     # Best Unbiased Predictors
+     bup(re, stat="mean")           # Posterior mean
+
+
+ re <- ranef(Amaz_ochr.fL[["p(.)Psi(VT)"]])
+## Best Unbiased Predictors
+##   bup(re, stat="mean")           # Posterior mean
+
+table(confint(re, level=0.95)[,1] ,confint(re, level=0.95)[,2] ) ##95% CI
+
+  (re <- ranef(Amaz_barb.fL[["p(h)Psi(T)"]]))
+     # Best Unbiased Predictors
+     bup(re, stat="mean")           # Posterior mean
+
+table(bup(re, stat="mean")> 0.95)
+table(bup(re, stat="mean")< 0.05)
+boxplot(bup(re, stat="mean")~Amaz_barb.fL[[1]]@data@siteCovs$NM)
+abline(h=0.05)
+
+@
+
+<<eval=false,echo=false>>=
+
+table(confint(re, level=0.95)[,1] ,confint(re, level=0.95)[,2] )## 95% CI
+
+    
+for (spps in c("Amaz_amaz","Amaz_ochr","Ara_seve","Arat_pert","Forp_pass","Pion_mens","Brot_jugu","Amaz_fari","Pyrr_pict"))
+    print(sprintf("%s.Psi <- %s",spps,with(subset(rslts,spp %in% spps & AICw>0.001),paste(sprintf("(%s.%s * %s)",spp,gsub("[()]","",mod),AICw),collapse="+"))))
+
+Amaz_amaz.Psi <- (Amaz_amaz.phPsiT * 0.592)+(Amaz_amaz.phPsiVT * 0.408)
+Amaz_ochr.Psi <- (Amaz_ochr.p.PsiVT * 0.968)+(Amaz_ochr.p.PsiT * 0.031)
+Ara_seve.Psi <- (Ara_seve.nulo * 0.724)+(Ara_seve.p.PsiV * 0.276)
+Arat_pert.Psi <- (Arat_pert.p.PsiVT * 0.632)+(Arat_pert.phPsiVT * 0.251)+(Arat_pert.p.PsiT * 0.084)+(Arat_pert.phPsiT * 0.032)
+Forp_pass.Psi <- (Forp_pass.p.PsiT * 0.417)+(Forp_pass.phPsiT * 0.279)+(Forp_pass.p.PsiVT * 0.087)+(Forp_pass.nulo * 0.069)+(Forp_pass.phPsiVT * 0.057)+(Forp_pass.phPsi. * 0.051)+(Forp_pass.p.PsiV * 0.025)+(Forp_pass.phPsiV * 0.015)
+Pion_mens.Psi <- (Pion_mens.phPsi. * 0.801)+(Pion_mens.phPsiV * 0.125)+(Pion_mens.phPsiT * 0.075)
+Brot_jugu.Psi <- (Brot_jugu.p.PsiV * 0.377)+(Brot_jugu.p.PsiVT * 0.175)+(Brot_jugu.p.PsiT * 0.166)+(Brot_jugu.phPsiV * 0.14)+(Brot_jugu.phPsiVT * 0.061)+(Brot_jugu.phPsiT * 0.059)+(Brot_jugu.nulo * 0.016)+(Brot_jugu.phPsi. * 0.006)
+Amaz_fari.Psi <- (Amaz_fari.p.PsiT * 0.774)+(Amaz_fari.nulo * 0.133)+(Amaz_fari.p.PsiVT * 0.093)
+Pyrr_pict.Psi <- (Pyrr_pict.p.PsiV * 0.668)+(Pyrr_pict.phPsiV * 0.332)
+
+
+subset(rslts,spp %in% "Arat_pert" & AICw>0.001)
+
+
+png(file="Aratinga_pertinax_psi.png")
+plot(Arat_pert.Psi,main="Eupsittula pertinax")
+points(muestreos[rowSums(Arat_pert.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=2,pch=1,cex=.5)
+points(muestreos[rowSums(Arat_pert.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+dev.off()
+
+@ 
+
+
+<<eval=false,echo=false>>=
+
+png(file="Ara_severus_psi.png")
+plot(Ara_seve.Psi,main="Ara severus")
+points(muestreos[rowSums(Ara_seve.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=2,pch=1,cex=.5)
+points(muestreos[rowSums(Ara_seve.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+shp <- shapefile("~/gisdata/distribuciones/BirdLife/Ara_severus_22685577.shp")
+plot(shp,add=T)
+dev.off()
+
+png(file="Amazona_amazonica_psi.png")
+plot(Amaz_amaz.Psi,main="Amazona amazonica",col=brewer.pal(9,"Greens"))
+points(muestreos[rowSums(Amaz_amaz.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=2,pch=1,cex=.5)
+points(muestreos[rowSums(Amaz_amaz.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+dev.off()
+
+png(file="Amazona_farinosa_psi.png")
+plot(Amaz_fari.Psi,main="Amazona farinosa",col=brewer.pal(9,"Greens"))
+points(muestreos[rowSums(Amaz_fari.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=2,pch=1,cex=.5)
+points(muestreos[rowSums(Amaz_fari.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+dev.off()
+
+@ 
+
+<<eval=false,echo=false>>=
+shp <- shapefile("~/gisdata/distribuciones/BirdLife/Amazona_ochrocephala_22686346.shp")
+
+png(file="Amazona_ochrocephala_psi.png",width=500,height=400)
+plot(Amaz_ochr.Psi,main="Amazona ochrocephala",col=brewer.pal(9,"Spectral"),ylim=c(0,13))
+plot(vz0,add=T,border="grey33")
+points(muestreos[rowSums(Amaz_ochr.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=1,pch=19,cex=.5)
+points(muestreos[rowSums(Amaz_ochr.mtz[,-1],na.rm=T)>0,c("V2","V1")],col="purple",pch=3)
+##plot(shp,add=T)
+
+dev.off()
+
+shp <- shapefile("~/gisdata/distribuciones/BirdLife/Pionus_menstruus_45429607.shp")
+
+png(file="Pionus_menstruus_psi.png",width=900,height=440,pointsize=18)
+layout(matrix(1:2,ncol=2))
+par(mar=c(1,0,1,5),oma=c(0,0,3,0))
+plot(vz0,ylim=c(0,13),border="darkgreen",main="IUCN, 2014")
+plot(shp,col=rgb(.1,.1,.9,.7),add=T)
+points(aves[aves@data$species %in% "Pionus menstruus",],col=2,pch=.7)
+
+plot(Pion_mens.Psi,col=brewer.pal(9,"Greens"),
+     ##breaks=round(seq(0,1,length=10),2),
+     ylim=c(0,13),axes=F,main="NeoMapas + Occupancy model")
+plot(vz0,add=T)
+points(muestreos[rowSums(Pion_mens.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=2,pch=1,cex=.5)
+points(muestreos[rowSums(Pion_mens.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+
+
+mtext("Pionus menstruus",3,cex=2.7,outer=T,font=3)
+dev.off()
+
+
+dev.off()
+
+png(file="Brotogeris_jugularis_psi.png")
+
+plot(Brot_jugu.Psi,main="Brotogeris jugularis",col=brewer.pal(9,"Greens"))
+points(muestreos[rowSums(Brot_jugu.mtz[,-1],na.rm=T)==0,c("V2","V1")],col=2,pch=1,cex=.5)
+points(muestreos[rowSums(Brot_jugu.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+shp <- shapefile(sprintf("%s/%s",SEDAC.mptc,"brot_jugu_pl.shp"))
+plot(shp,add=T)
+
+dev.off()
+
+
+
+rowSums(tabla.AIC[,grep("h",colnames(tabla.AIC))],na.rm=T)
+rowSums(tabla.AIC[,grep("V",colnames(tabla.AIC))],na.rm=T)
+rowSums(tabla.AIC[,grep("T",colnames(tabla.AIC))],na.rm=T)
+
+
+### para ver si la falta de detección provee información confiable sobre su ausencia hay que calcular para cada punto (según hora etc...) estos valores
+
+
+
+@
+
+
+<<eval=false,echo=false>>=
+
+## lista
+## no-detectado vs detectado
+## no-detectado: no esperado (escaso o distribución restringida) vs esperado
+## esperado: baja detectabilidad o ausente
+## detectado: abundante/común vs. escaso o restringido 
+## restringido por clima o vegetación
+
+
+## probabilidad de detección después de varias visitas a un sitio:
+##Probabilidad de no detección
+##gP <- getP(Arat_pert.fL[[3]])
+gP <- obs1[,-1]^0 * 0.3
+gP[is.na(obs1[,-1])] <- NA
+##gP <- getP(Arat_pert.fL[["p(.)Psi(VT)"]])
+##gP[is.na(obs1[os,-1])] <- NA
+preF <- apply(gP,1,function(x) prod(1-x,na.rm=T))
+
+## si estamos 25% seguros de la presencia...
+prePsi <- 0.5
+
+postPsi <- prePsi*preF/(prePsi*preF + (1-prePsi))
+boxplot(postPsi)
+
+
+tapply(mexp$NM,mexp$spp,luq)
+
+boxplot(with(subset(rslts,mod %in% "nulo"),dtt/n))
+
+shp <- shapefile("~/gisdata/distribuciones/BirdLife/Pyrilia_caica_22686136.shp")
+plot(vz0,border="grey33")
+plot(shp,add=T)
+shp <- shapefile("~/gisdata/distribuciones/BirdLife/Pionus_fuscus_22686198.shp")
+plot(shp,add=T)
+shp <- shapefile("~/gisdata/distribuciones/BirdLife/Deroptyus_accipitrinus_22686416.shp")
+plot(shp,add=T)
+
+res <- data.frame()
+for (j in 1:nrow(rslts)) {
+    fL <- get(sprintf("%s.fL",rslts[j,"spp"]))
+    mdl <- fL[[as.character(rslts[j,"mod"])]]
+    re <- ranef(mdl)
+    ci <- confint(re, level=0.95)
+    res <- rbind(res,data.frame(
+                         spp=rslts[j,"spp"],
+                         mod=rslts[j,"mod"],
+                         aus=sum(ci[,1]==0 & ci[,2]==0 ),
+                         q.aus=sum(ci[,1]==0 & ci[,2]==1 ),
+                         pres=sum(ci[,1]==1 & ci[,2]==1 )))
+
+
+}
+bst.res <- cbind(res[rslts$Delta.AICc==0,],rslts[rslts$Delta.AICc==0,c("n","dtt")])
+write.csv(file="TablaDeteccionesPrediccionPsittacidae.csv",bst.res)
+write.csv(file="TablaModelosPsittacidae.csv",rslts)
+sum(bst.res$aus)/sum(bst.res$n-bst.res$dtt)
+
+
+@ 
+
+\section{Species accounts}
+
+
+\SweaveInput{inc100_SweaveCodes.Rnw}
+%Listo:
+\SweaveInput{inc100_Amazona.Rnw}
+\SweaveInput{inc101_Ara.Rnw}
+\SweaveInput{inc102_Aratinga.Rnw}
+\SweaveInput{inc103_Bolborhynchus.Rnw}
+\SweaveInput{inc104_Brotogeris.Rnw}
+\SweaveInput{inc105_Deroptyus.Rnw}
+\SweaveInput{inc106_Diopsittaca.Rnw}
+\SweaveInput{inc107_Eupsittula.Rnw}
+\SweaveInput{inc108_Forpus.Rnw}
+\SweaveInput{inc109_Hapalopsittaca.Rnw}
+\SweaveInput{inc110_Nanopsittaca.Rnw}
+\SweaveInput{inc111_Orthopsittaca.Rnw}
+\SweaveInput{inc112_Pionites.Rnw}
+\SweaveInput{inc113_Pionus.Rnw}
+\SweaveInput{inc114_Thectocercus.Rnw}
+\SweaveInput{inc115_Psittacara.Rnw}
+\SweaveInput{inc116_Pyrilia.Rnw}
+\SweaveInput{inc117_Pyrrhura.Rnw}
+\SweaveInput{inc100_Touit.Rnw}
+
+
+\bibliography{/home/jferrer/Dropbox/NeoMapas/lib/BibTEX/DocumentosNM,/home/jferrer/Dropbox/NeoMapas/lib/BibTEX/Psittacidae}
+
+
+\end{document}

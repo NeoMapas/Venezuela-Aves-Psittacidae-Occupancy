@@ -1,0 +1,159 @@
+%\SweaveUTF8
+
+\subsection{Genus Ara}
+
+The genus Ara is represented in Venezuela by five species. 
+
+<<echo=false>>=
+subset(rsm.loros,grepl("Ara ",rownames(rsm.loros)))[,-1]
+@ 
+Four species were detected during NeoMaps surveys in 2010, the only exception was (\emph{Ara ararauna}).
+
+\subsubsection{\emph{Ara ararauna}}
+<<echo=false>>=
+ak <- "Ara_arar"
+k ="Ara ararauna"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+
+@ 
+  
+\subsubsection{\emph{Ara chloropterus}}          
+<<echo=false>>=
+ak <- "Ara_chlo"
+k ="Ara chloropterus"
+@
+\emph{\Sexpr{k}} has a widespread distribution and was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from NeoMaps, but has few actual detections.  
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+Available data allowed to fit models with constant probability of detection and variable probability of presence. 
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+However, the model has a poor fit with a combination of high probability of occurrence and low probability of detection and too wide standard errors for the estimated parameters:
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+
+\subsubsection{\emph{Ara macao}}                 
+<<echo=false>>=
+ak <- "Ara_maca"
+k ="Ara macao"
+@
+\emph{\Sexpr{k}} has a widespread distribution and was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from NeoMaps, but has few actual detections.  
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+Available data allowed to fit several alternative models including covariates in probability of presence.
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+The best model includes constant detection probability and effect on climatic covariates, but parameter values suggest a poor fit and high uncertainty.
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+Unconditional probability of presence is relatively low in most of the sampling area, and presence was confirmed in very few localities (localities of detection). 
+
+<<fig=true,echo=false,width=5,height=5>>=
+<<PostPsiNM>>
+hist(psi.cond,xlab=expression(Psi[cond]),freq=T)
+@ 
+
+
+
+\subsubsection{\emph{Ara militaris}}  
+<<echo=false>>=
+ak <- "Ara_mili"
+k ="Ara militaris"
+
+@
+
+\emph{\Sexpr{k}} is found in the Andean and Coastal mountain ranges of Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+Available data allowed to fit some alternative models with similar AICc values. 
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+The best model includes an effect of time of day on the detection probability.
+
+<<fig=true,echo=false,width=3,height=3>>=
+<<ProbDetect>>
+@ 
+
+Parameter estimates have high values and high uncertainty. 
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+Unconditional probability of presence is relatively low in most of the sampling area, and presence was confirmed in very few localities (localities of detection). 
+
+<<fig=true,echo=false,width=5,height=5>>=
+<<PostPsiNM>>
+hist(psi.cond,xlab=expression(Psi[cond]),freq=T)
+@ 
+
+\subsubsection{\emph{Ara severus}}               
+
+<<echo=false>>=
+ak <- "Ara_seve"
+k ="Ara severus"
+@
+
+\emph{\Sexpr{k}} has a widespread but non continuos distribution and was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from NeoMaps.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+Available data allowed to fit models with constant probability of detection and probability of presence. 
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+Parameter estimates have high values and high uncertainty. 
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+The combination of parameter values results in extreme predictions of conditional probability of presence within the sampling area.
+
+<<fig=true,echo=false,width=5,height=5>>=
+<<PostPsiNM>>
+hist(psi.cond,xlab=expression(Psi[cond]),freq=T)
+@ 

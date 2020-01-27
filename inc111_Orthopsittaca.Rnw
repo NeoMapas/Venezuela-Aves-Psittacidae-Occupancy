@@ -1,0 +1,38 @@
+
+\subsection{Genus Orthopsittaca, species \emph{O. manilatus}}   
+The genus Orthopsittaca is represented in Venezuela by a single species.
+
+
+<<echo=false>>=
+subset(rsm.loros,grepl("Orthopsittaca ",rownames(rsm.loros)))[,-1]
+@ 
+
+%\subsubsection{
+<<Om,echo=false>>=
+ak <- "Orth_mani"
+k ="Orthopsittaca manilatus"
+@
+
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela, it was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+
+The small number of detections during NeoMaps field work allowed to fit two alternative models with similar AICc support. 
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+ The fitted model had large estimates and large uncertainty in both parameters and is thus non-informative for inferences or predictions.
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+

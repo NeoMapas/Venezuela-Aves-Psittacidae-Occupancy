@@ -1,0 +1,217 @@
+
+
+\subsection{Genus Pyrrhura}
+
+The genus Pyrrhura is represented in Venezuela by seven species and five were detected in NeoMaps surveys.
+
+<<echo=false>>=
+subset(rsm.loros,grepl("Pyrrhura ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Pyrrhura caeruleiceps}}     
+<<Pc,echo=false>>=
+ak <- "Pyrr_caer"
+k ="Pyrrhura caeruleiceps"
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+\subsubsection{\emph{Pyrrhura egregia}}          
+<<Pg,echo=false>>=
+ak <- "Pyrr_egre"
+k ="Pyrrhura egregia"
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+This species was detected in few localities during the field work in 2010. Several alternative models were fitted.
+<<echo=false>>=
+<<rsltsSS>>
+@
+The fitted models with extreme values in parameters and high uncertainty in estimates are not informative.
+<<echo=false>>=
+<<SummaryMdl>>
+@
+
+
+
+
+\subsubsection{\emph{Pyrrhura emma}}   
+<<Pe,echo=false>>=
+ak <- "Pyrr_emma"
+k ="Pyrrhura emma"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+\subsubsection{\emph{Pyrrhura hoematotis}}       
+<<Ph,echo=false>>=
+ak <- "Pyrr_hoem"
+k ="Pyrrhura hoematotis"
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+This species was only detected once during the field work in 2010. 
+<<echo=false>>=
+<<rsltsSS>>
+@
+The fitted models with extreme values in parameters and high uncertainty in estimates are not informative.
+<<echo=false>>=
+<<SummaryMdl>>
+@
+
+
+
+
+\subsubsection{\emph{Pyrrhura melanura}}         
+<<Pm,echo=false>>=
+ak <- "Pyrr_mela"
+k ="Pyrrhura melanura"
+@ 
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+This species was only detected in few occasions during the field work in 2010.
+<<echo=false>>=
+<<rsltsSS>>
+@
+
+
+The fitted model with extreme values in parameters and high uncertainty in estimates are not informative.
+<<echo=false>>=
+<<SummaryMdl>>
+@
+
+
+\subsubsection{\emph{Pyrrhura picta}} 
+<<Pp,echo=false>>=
+ak <- "Pyrr_pict"
+k ="Pyrrhura picta"
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+Available data allowed to fit several alternatie models.
+<<echo=false>>=
+<<rsltsSS>>
+@
+
+According to the model with the best support the unconditional probability of presence varied along the NeoMaps routes depending on the value of the covariates. The figure show four examples of 40 km routes, ordered from beginning to end, three with detections (NM22, NM36 and NM93) and one without detections (NM24). The lines show the predicted unconditional probability of presence (solid line: best estimate, dotted lines 95\% confidence interval), and the dots represent the conditional probability given the observed detection history. Blue dots represent the localities of known occurrences, red dots are localities with very low posterior probabilities of presence ($\Psi_{post}<0.125$), grey dots are localities with intermediate values. 
+
+\setkeys{Gin}{width=0.8\textwidth}
+<<fig=true,eval=true,echo=false,width=7,height=5>>=
+fL <- get(sprintf("%s.fL",ak))
+mdl <- fL[[which.min(lapply(fL,function(x) x@AIC))]]
+re <- ranef(mdl)
+prd <- predict(mdl,"state")
+psi.cond <- re@post[,2,1]
+nms <- trans.info$NM[match(substr(as.character(mdl@data@siteCovs$idpunto),1,2),trans.info$IDTransect)]
+
+layout(matrix(1:4,ncol=2))
+for (nn in unique(nms)) {
+    matplot(prd[nms %in% nn,c(1,3,4)],type="l",lty=c(1,3,3),col=1,ylim=c(0,1),main=sprintf("NM%s",nn),ylab="Probability of presence")
+    y <- psi.cond[nms %in% nn]
+    x <- seq(along=y)
+    points(x[y<0.125], y[y<0.125],pch=19,col="red")
+    points(x[y>0.125], y[y>0.125],pch=19,col="grey47")
+    points(x[y>0.95], y[y>0.95],pch=19,col="blue")
+
+}
+@ 
+\setkeys{Gin}{width=0.5\textwidth}
+
+
+\subsubsection{\emph{Pyrrhura rhodocephala}}     
+<<Pr,echo=false>>=
+ak <- "Pyrr_rhod"
+k ="Pyrrhura rhodocephala"
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+This species was only detected once during the field work in 2010. 
+<<echo=false>>=
+<<rsltsSS>>
+@
+The fitted models with extreme values in parameters and high uncertainty in estimates are not informative.
+<<echo=false>>=
+<<SummaryMdl>>
+@
+
+

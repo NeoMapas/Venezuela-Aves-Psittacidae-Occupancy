@@ -1,0 +1,28 @@
+
+
+\subsection{Genus Bolborhynchus, species \emph{B. lineola}}
+
+The genus Bolborhynchus is represented in Venezuela by a single species.
+<<echo=false>>=
+subset(rsm.loros,grepl("Bolborhynchus ",rownames(rsm.loros)))[,-1]
+@ 
+
+
+%\subsubsection{
+<<echo=false>>=
+ak <- "Bolb_line"
+k ="Bolborhynchus lineola"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela. 
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. It was not detected by NeoMaps field work, and only has few GBIF record from the 2008-2012 period. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 

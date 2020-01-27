@@ -1,0 +1,198 @@
+%\SweaveUTF8
+
+\subsection{Genus Touit}
+
+No species of the genus Touit was detected by NM surveys. There are also few records in GBIF.
+
+<<T,echo=false>>=
+subset(rsm.loros,grepl("Touit ",rownames(rsm.loros)))[,-1]
+@ 
+
+
+\subsubsection{\emph{Touit batavica}}      
+<<echo=false>>=
+ak <- "Toui_bata"
+k ="Touit batavica"
+@
+This species was expected in \Sexpr{ sum(subset(mexp,spp %in% gsub("a$","us",k))$freq)} NM sampling localities.
+
+<<Th,fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+
+@ 
+  
+
+\subsubsection{\emph{Touit dilectissima}}        
+<<Td,echo=false>>=
+ak <- "Toui_dile"
+k ="Touit dilectissima"
+@
+This species was expected in \Sexpr{ sum(subset(mexp,spp %in% gsub("a$","us",k))$freq)} NM sampling localities.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+
+@ 
+
+
+\subsubsection{\emph{Touit huetii}}              
+<<echo=false>>=
+ak <- "Toui_huet"
+k ="Touit huetii"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+This species was expected in \Sexpr{ sum(subset(mexp,spp %in% gsub("a$","us",k))$freq)} NM sampling localities.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+
+@ 
+
+\subsubsection{\emph{Touit purpurata}}  
+
+
+<<echo=false>>=
+ak <- "Toui_purp"
+k ="Touit purpurata"
+@
+
+
+This species was expected in \Sexpr{ sum(subset(mexp,spp %in%  gsub("a$","us",k))$freq)} NM sampling localities.
+
+<<Tp,fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+
+@ 
+  
+  
+<<eval=false,echo=false>>=
+
+
+##subset(rslts,Delta.AICc==0 & grepl("V",mod))
+
+
+
+
+evaluate(p=extract(Amaz_amaz.phPsiVC,s11),
+         a=extract(Amaz_amaz.phPsiVC,s10))
+evaluate(p=extract(Amaz_amaz.phPsiVC,s21),
+         a=extract(Amaz_amaz.phPsiVC,s20))
+
+boxplot(extract(Amaz_amaz.phPsiVC,s10),extract(Amaz_amaz.phPsiVC,s11))
+
+aves[aves@data$species %in% "Amazona amazonica",]
+
+points(aves[aves@data$species %in% "Amazona amazonica",],col=2,pch=.7)
+
+
+mdl <- get(sprintf("%s.%s",rsm.Loros[slc,"acronimo"],
+                   gsub("[\\(\\)]","",
+                        subset(rslts,Delta.AICc==0 & grepl("V",mod) & spp %in% rsm.Loros[slc,"acronimo"])$mod)))
+
+                                                                                                                 assign(sprintf("%s.val",rsm.Loros[slc,"acronimo"]),
+           values(rasterize(shp,mdl)))
+
+    png(file=sprintf("Pred_%s.png",rsm.Loros[slc,"acronimo"]),bg="aliceblue",width=600,height=500,pointsize=14)
+    plot(mdl,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Oranges")),main=rsm.Loros[slc,1],    sub=sprintf("COR = %0.3f",cor(values(mdl),!is.na(get(sprintf("%s.val",rsm.Loros[slc,"acronimo"]))),
+        use="complete"))
+)
+    plot(shp,add=T)
+    plot(vz0,lty=3,add=T)
+dev.off()
+
+
+plot(Diop_nobi.p.PsiV,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")),main="Diop. nobi.")
+ plot(Pion_mens.phPsiV,breaks=seq(0,1,length=11),col=c("grey77",brewer.pal(9,"Oranges")),main="Pionus menstruus")
+##plot(Pion_mens.phPsiVT,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+
+
+plot(Pyrr_pict.p.PsiV,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+plot(Brot_jugu.p.PsiV,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+plot(Arat_pert.p.PsiVT,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+plot(Ara_seve.p.PsiV,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+plot(Ara_mili.phPsiV,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+
+
+
+
+plot(Amaz_ochr.p.PsiVC,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Greens")))
+
+par(mar=c(2,2,0,0))
+plot(vz0,ylim=c(0,13),xlim=c(-74,-58),pty="n")
+image(Amaz_amaz.p.PsiVT,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Oranges")),ylab="",xlab="",axes=F,add=T)
+axis(2,seq(0,14,by=2),sprintf("%02s°N",seq(0,14,by=2)))
+axis(1,seq(-74,-58,by=2),sprintf("%02s°W",abs(seq(-74,-58,by=2))))
+
+##
+plot(shp,add=T,lwd=5)
+plot(vz0,add=T,border="grey13")
+points(muestreos[rowSums(Amaz_amaz.mtz[,-1],na.rm=T)==0,c("V2","V1")],col="cyan",pch=1,cex=.5)
+points(muestreos[rowSums(Amaz_amaz.mtz[,-1],na.rm=T)>0,c("V2","V1")],col=1,pch=3)
+
+for (k in c("Amazona amazonica","Amazona ochrocephala","Ara militaris",
+            "Ara severus","Eupsittula pertinax","Brotogeris jugularis",
+            "Pionus menstruus","Pyrrhura picta","Diopsittaca nobilis")) {
+    
+    slc <- match(k,rsm.Loros[,1])
+    shp <- crop(shapefile(sprintf("~/gisdata/distribuciones/BirdLife/%s.shp",rsm.Loros[slc,"BL.shp"])),e)
+    mdl <- get(sprintf("%s.%s",rsm.Loros[slc,"acronimo"],
+                       gsub("[\\(\\)]","",
+                            subset(rslts,Delta.AICc==0 & grepl("V",mod) & spp %in% rsm.Loros[slc,"acronimo"])$mod)))
+
+    assign(sprintf("%s.val",rsm.Loros[slc,"acronimo"]),
+           values(rasterize(shp,mdl)))
+
+    png(file=sprintf("Pred_%s.png",rsm.Loros[slc,"acronimo"]),bg="aliceblue",width=600,height=500,pointsize=14)
+    plot(mdl,breaks=seq(0,1,length=11),col=c(NA,brewer.pal(9,"Oranges")),main=rsm.Loros[slc,1],    sub=sprintf("COR = %0.3f",cor(values(mdl),!is.na(get(sprintf("%s.val",rsm.Loros[slc,"acronimo"]))),
+        use="complete"))
+)
+    plot(shp,add=T)
+    plot(vz0,lty=3,add=T)
+dev.off()
+
+png(file=sprintf("Boxplot_%s.png",rsm.Loros[slc,"acronimo"]),bg="aliceblue",width=400,height=400,pointsize=14)
+boxplot(values(mdl)~!is.na(get(sprintf("%s.val",rsm.Loros[slc,"acronimo"]))),notch=T)    
+   dev.off() 
+}
+
+
+
+
+@
+
+<<eval=false,echo=false>>=
+
+
+
+
+
+cor(values(Amaz_ochr.p.PsiVT),!is.na(Amaz_ochr.val),use="complete")
+
+cor.test(as.vector(values(Amaz_ochr.p.PsiVT)),
+    as.vector(!is.na(Amaz_ochr.val)),use="complete")
+
+boxplot(values(Amaz_amaz.p.PsiVT)~!is.na(Amaz_amaz.val),notch=T)
+boxplot(values(Amaz_ochr.p.PsiVT)~!is.na(Amaz_ochr.val),notch=T)
+boxplot(values(Ara_seve.p.PsiV)~!is.na(Ara_seve.val),notch=T)
+boxplot(values(Ara_mili.phPsiV)~!is.na(Ara_mili.val),notch=T)
+boxplot(values(Diop_nobi.p.PsiV)~!is.na(Diop_nobi.val),notch=T)
+boxplot(values(Pion_mens.phPsiVT)~!is.na(Pion_mens.val),notch=T)
+boxplot(values(Pyrr_pict.p.PsiV)~!is.na(Pyrr_pict.val),notch=T)
+boxplot(values(Brot_jugu.p.PsiV)~!is.na(Brot_jugu.val),notch=T)
+boxplot(values(Arat_pert.p.PsiVT)~!is.na(Arat_pert.val),notch=T)
+
+
+for (mdl in c("p(.)Psi(T)","p(h)Psi(T)")) {
+    ssr <- subset(rslts,mod %in% c(mdl) & AICw>0.001)
+    for (k in 1:nrow(ssr)) {
+        psi <- raster(mVars,1)*NA
+        ##values(psi)[ss] <- prdPsi$Predicted
+        fL <- get(sprintf("%s.fL",ssr[k,"spp"]))
+        values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*with(vWC[ss,],rbind(1,PET,PET^2,LSTd,LSTd^2))))
+        assign(sprintf("%s.%s",ssr[k,"spp"],gsub("[()]","",mdl)),psi)
+    }
+
+}
+
+@ 

@@ -1,0 +1,220 @@
+% !Rnw root = Documento1_PsittacidaeVenezuelaNM.Rnw
+%\SweaveUTF8
+
+
+<<FigNotDetected,eval=false,echo=false>>=
+qry <- gsub(" ","_",gsub("Thectocercus","Psittacara",k))
+if(grepl("Touit",k))
+    qry <- gsub(" ","_",gsub("a$","us",k))
+slc <- dir(gis.data,pattern=sprintf("%s_[0-9]+.shp",
+                        qry),
+           full.names=T)
+if (length(slc)==0) {
+    slc <- dir(gis.data,pattern=sprintf("%s_[0-9]+.shp",gsub(" ","_",gsub("a$","us",k))),full.names=T)
+}
+    
+
+s11 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & (species %in% c(k,gsub("Thectocercus","Psittacara",k),rsm.loros[k,"old.spp"])) & year %in% 2008:2012)
+s10 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% c(alt.loros,todos.loros) & !(species %in% c(k,gsub("Thectocercus","Psittacara",k),rsm.loros[k,"old.spp"])) & year %in% 2008:2012)
+
+shp <- crop(shapefile(slc),e)
+par(mar=c(2,2,0,0))
+plot(vz0,ylim=c(0,13),xlim=c(-74,-58),pty="n")
+axis(2,seq(0,14,by=2),sprintf("%02s°N",seq(0,14,by=2)))
+axis(1,seq(-74,-58,by=2),sprintf("%02s°W",abs(seq(-74,-58,by=2))))
+plot(shp,add=T,lwd=2,col="pink")
+plot(CNEB[match(trans.info$CNEB,CNEB@data$cdg),],border="grey33",add=T)
+text(CNEB[match(trans.info$CNEB,CNEB@data$cdg),],trans.info$NM,col="grey33",cex=.7)
+
+plot(vz0,add=T,border="grey13")
+
+points(s10,col=2,pch=19,cex=.5)
+points(s11,col=4,pch=19,cex=.5)
+
+@ 
+
+<<FigNotDetectedRestricted,eval=false,echo=false>>=
+slc <- dir(gis.data,pattern=sprintf("%s_[0-9]+.shp",gsub(" ","_",k)),full.names=T)
+if (length(slc)==0) {
+    slc <- dir(gis.data,pattern=sprintf("%s_[0-9]+.shp",gsub(" ","_",gsub("a$","us",k))),full.names=T)
+}
+    
+
+s11 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & (species %in% c(k,rsm.loros[k,"old.spp"])) & year %in% 2008:2012)
+s10 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% c(alt.loros,todos.loros) & !(species %in% c(k,rsm.loros[k,"old.spp"])) & year %in% 2008:2012)
+
+#s21 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% k)
+#s20 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% c(alt.loros,todos.loros) & !(species %in% k))
+
+shp <- crop(shapefile(slc),e)
+par(mar=c(2,2,0,0))
+plot(shp,pty="n")
+axis(2,seq(0,14,by=2),sprintf("%02s°N",seq(0,14,by=2)))
+axis(1,seq(-74,-58,by=2),sprintf("%02s°W",abs(seq(-74,-58,by=2))))
+plot(shp,add=T,lwd=2,col="pink")
+plot(CNEB[match(trans.info$CNEB,CNEB@data$cdg),],border="grey33",add=T)
+text(CNEB[match(trans.info$CNEB,CNEB@data$cdg),],trans.info$NM,col="grey33",cex=.9)
+
+plot(vz0,add=T,border="grey13")
+
+points(s10,col=2,pch=19,cex=.75)
+points(s11,col=4,pch=19,cex=.75)
+
+@ 
+
+<<rsltsSS,eval=false,echo=false>>=
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@ 
+
+<<ProbDetect,echo=false,eval=false>>=
+arch <- sprintf("%s.pmtz",ak)
+##png(file=sprintf("%s_detectabilidad.png",sub(".pmtz","",arch)),
+##        width=400,height=400,pointsize=16)
+par(mar=c(5,4,1,1))
+matplot(nwdt$hora,get(arch),axes=F,
+        xlab="Hour of the day",ylab="Probability of detection",
+        lty=c(3,1,3),col=1,type="l",ylim=c(0,1))
+axis(2)
+axis(1,seq(0.25,1,length=8),seq(5,12,length=8))
+box()
+##dev.off()
+
+@ 
+
+<<SummaryMdl,eval=false,echo=false>>=
+fL <- get(sprintf("%s.fL",ak))
+mdl <- fL[[which.min(lapply(fL,function(x) x@AIC))]]
+summary(mdl)  
+@ 
+
+<<phPsiC,eval=false,echo=false>>=
+mdl <- "p(h)Psi(C)"
+if (!exists(sprintf("%s.%s",ak,gsub("[()]","",mdl)))) {
+    psi <- raster(sVars,1)*NA
+    
+    ss <- rowSums(is.na(values(sVars)))==0
+    ##values(psi)[ss] <- prdPsi$Predicted
+    fL <- get(sprintf("%s.fL",ak))
+    values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*
+                                                   rbind(1,values(sVars)[ss,"pet01"],values(sVars)[ss,"pet01"]^2,values(sVars)[ss,"dT01"],values(sVars)[ss,"dT01"]^2,values(sVars)[ss,"pre01"],values(sVars)[ss,"pre01"]^2)))
+    assign(sprintf("%s.%s",ak,gsub("[()]","",mdl)),psi)
+}
+@ 
+
+<<phPsiVC,echo=false,eval=false>>=
+mdl <- "p(h)Psi(VC)"
+if (!exists(sprintf("%s.%s",ak,gsub("[()]","",mdl)))) {
+    psi <- raster(sVars,1)*NA
+    ss <- rowSums(is.na(values(sVars)))==0
+    ##values(psi)[ss] <- prdPsi$Predicted
+    fL <- get(sprintf("%s.fL",ak))
+    values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*
+                                                   rbind(1,values(sVars)[ss,"evi01"],values(sVars)[ss,"evi01"]^2,values(sVars)[ss,"pet01"],values(sVars)[ss,"pet01"]^2,values(sVars)[ss,"dT01"],values(sVars)[ss,"dT01"]^2,values(sVars)[ss,"pre01"],values(sVars)[ss,"pre01"]^2)))
+    assign(sprintf("%s.%s",ak,gsub("[()]","",mdl)),psi)
+}
+
+@ 
+
+<<plotPsi,eval=false,echo=false>>=
+slc <- dir(gis.data,pattern=sprintf("%s_[0-9]+.shp",gsub(" ","_",k)),full.names=T)
+s11 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% k & year %in% 2008:2012)
+s10 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% c(alt.loros,todos.loros) & !(species %in% k) & year %in% 2008:2012)
+
+psi <- get(sprintf("%s.%s",ak,gsub("[()]","",mdl)))
+shp <- crop(shapefile(slc),e)
+
+par(mar=c(2,2,0,0))
+plot(vz0,ylim=c(0,13),xlim=c(-74,-58),pty="n")
+image(psi,breaks=seq(0,1,length=11),
+      col=c(NA,grey(seq(.80,0.2,length=9))),
+##      col=c(NA,brewer.pal(9,"Oranges")),
+      ylab="",xlab="",axes=F,add=T)
+axis(2,seq(0,14,by=2),sprintf("%02s°N",seq(0,14,by=2)))
+axis(1,seq(-74,-58,by=2),sprintf("%02s°W",abs(seq(-74,-58,by=2))))
+##plot(shp,add=T,lwd=2,border="white")
+plot(vz0,add=T,border="grey13")
+##points(muestreos[rowSums(get(sprintf("%s.mtz",ak))[,-1],na.rm=T)==0,c("V2","V1")],col="red",pch=1,cex=.5)
+##points(muestreos[rowSums(get(sprintf("%s.mtz",ak))[,-1],na.rm=T)>0,c("V2","V1")],col="blue",pch=19)
+##points(muestreos[rowSums(get(sprintf("%s.mtz",ak))[,-1],na.rm=T)>0,c("V2","V1")],col="black",pch=19)
+##points(muestreos[rowSums(get(sprintf("%s.mtz",ak))[,-1],na.rm=T)==0,c("V2","V1")],col="white",pch=1,cex=.5)
+##points(s10,col=2,pch=19,cex=.5)
+##points(s11,col=4,pch=19,cex=.5)
+@ 
+
+<<plotPsiCrop,eval=false,echo=false>>=
+slc <- dir(gis.data,pattern=sprintf("%s_[0-9]+.shp",gsub(" ","_",k)),full.names=T)
+s11 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% k & year %in% 2008:2012)
+s10 <- subset(aves, !(collectionCode %in% "doi:10.1594/PANGAEA.803430") & species %in% c(alt.loros,todos.loros) & !(species %in% k) & year %in% 2008:2012)
+
+psi <- get(sprintf("%s.%s",ak,gsub("[()]","",mdl)))
+shp <- crop(shapefile(slc),e)
+
+par(mar=c(2,2,0,0))
+plot(crop(vz0,extent(shp)),pty="n")
+image(psi,##breaks=seq(0,1,length=11),
+##      col=c(NA,grey(seq(.80,0.2,length=9))),
+      col=c(NA,brewer.pal(9,"Oranges")),
+      ylab="",xlab="",axes=F,add=T)
+axis(2,seq(0,14,by=2),sprintf("%02s°N",seq(0,14,by=2)))
+axis(1,seq(-74,-58,by=2),sprintf("%02s°W",abs(seq(-74,-58,by=2))))
+##plot(shp,add=T,lwd=2,border="white")
+plot(vz0,add=T,border="grey13")
+points(muestreos[rowSums(get(sprintf("%s.mtz",ak))[,-1],na.rm=T)==0,c("V2","V1")],col="red",pch=1,cex=.5)
+points(muestreos[rowSums(get(sprintf("%s.mtz",ak))[,-1],na.rm=T)>0,c("V2","V1")],col="blue",pch=19)
+##points(s10,col=2,pch=19,cex=.5)
+##points(s11,col=4,pch=19,cex=.5)
+@ 
+
+<<PostPsiNM,eval=false,echo=false>>=
+fL <- get(sprintf("%s.fL",ak))
+mdl <- fL[[which.min(lapply(fL,function(x) x@AIC))]]
+re <- ranef(mdl)
+prd <- predict(mdl,"state")
+psi.cond <- re@post[,2,1]
+nms <- trans.info$NM[match(substr(as.character(mdl@data@siteCovs$idpunto),1,2),trans.info$IDTransect)]
+
+@ 
+
+<<p.PsiVC,echo=false,eval=false>>=
+mdl <- "p(.)Psi(VC)"
+if (!exists(sprintf("%s.%s",ak,gsub("[()]","",mdl)))) {
+    psi <- raster(sVars,1)*NA
+    ss <- rowSums(is.na(values(sVars)))==0
+    ##values(psi)[ss] <- prdPsi$Predicted
+    fL <- get(sprintf("%s.fL",ak))
+    values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*
+                                                   rbind(1,values(sVars)[ss,"evi01"],values(sVars)[ss,"evi01"]^2,values(sVars)[ss,"pet01"],values(sVars)[ss,"pet01"]^2,values(sVars)[ss,"dT01"],values(sVars)[ss,"dT01"]^2,values(sVars)[ss,"pre01"],values(sVars)[ss,"pre01"]^2)))
+    assign(sprintf("%s.%s",ak,gsub("[()]","",mdl)),psi)
+}
+@ 
+
+<<p.PsiV,echo=false,eval=false>>=
+mdl <- "p(.)Psi(V)"
+if (!exists(sprintf("%s.%s",ak,gsub("[()]","",mdl)))) {
+    psi <- raster(sVars,1)*NA
+    ss <- rowSums(is.na(values(sVars)))==0
+    ##values(psi)[ss] <- prdPsi$Predicted
+    fL <- get(sprintf("%s.fL",ak))
+    values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*
+                                                   rbind(1,values(sVars)[ss,"evi01"],values(sVars)[ss,"evi01"]^2)))
+    assign(sprintf("%s.%s",ak,gsub("[()]","",mdl)),psi)
+}
+@ 
+
+<<phPsiV,echo=false,eval=false>>=
+mdl <- "p(h)Psi(V)"
+if (!exists(sprintf("%s.%s",ak,gsub("[()]","",mdl)))) {
+    psi <- raster(sVars,1)*NA
+    ss <- rowSums(is.na(values(sVars)))==0
+    ##values(psi)[ss] <- prdPsi$Predicted
+    fL <- get(sprintf("%s.fL",ak))
+    values(psi)[ss] <- boot::inv.logit(colSums(coef(fL[[mdl]],"state")*
+                                                   rbind(1,values(sVars)[ss,"evi01"],values(sVars)[ss,"evi01"]^2)))
+    assign(sprintf("%s.%s",ak,gsub("[()]","",mdl)),psi)
+}
+@ 
+
+<<ExpectedFrom,eval=false,echo=false>>=
+cat(paste(with(subset(trans.info,IDTransecta %in% subset(mexp,spp %in% k)$NM),sprintf("'%s', %s state (NeoMaps route NM%s)",Nombretransecta,Estado,NM)),collapse="; "))
+@ 

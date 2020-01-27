@@ -1,0 +1,33 @@
+
+\subsection{Genus Diopsittaca, species \emph{D. nobilis}}
+This genus is represented in Venezuela by a single species.
+
+<<D,echo=false>>=
+subset(rsm.loros,grepl("Diopsittaca ",rownames(rsm.loros)))[,-1]
+@ 
+
+%\subsubsection{}       
+<<echo=false>>=
+ak <- "Diop_nobi"
+k ="Diopsittaca nobilis"
+@
+
+In Venezuela \emph{\Sexpr{k}} is restricted to the Guyana region south of the Orinoco river, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+
+<<FigNotDetectedRestricted>>
+@ 
+
+It was detected twice during the field work in 2010, and only has few GBIF record from the 2008-2012 period. 
+
+Due to the scarce data available, the model has a poor fit with a combination of high probability of occurrence and low probability of detection and too wide standard errors for the estimated parameters:
+
+<<echo=false>>=
+##<<rsltsSS>>
+<<SummaryMdl>>
+@ 

@@ -1,0 +1,241 @@
+% !Rnw root = Documento1_PsittacidaeVenezuelaNM.Rnw
+%\SweaveUTF8
+\subsection{Genus Amazona}
+\setkeys{Gin}{width=0.5\textwidth}
+
+The genus Amazona is represented in Venezuela by eight species. The following table show species names and acronyms used in this text, with the number of distribution for each species according to the Global Biodiversity Information Facility (\texttt{GBIF}), and the number of records from the 2008-2012 period (\texttt{GBIF.2010}), and the number of detection in NeoMaps first day sampling (\texttt{NM.M1}), and the additional detections in the three sampling periods of the second day (\texttt{NM.L1},\texttt{NM.L2},\texttt{NM.L3}).
+<<echo=false>>=
+subset(rsm.loros,grepl("Amazona ",rownames(rsm.loros)))[,-1]
+@ 
+
+Only four species were detected during NeoMaps surveys in 2010, but the four undetected species also had very few GBIF records in this time period. Please refer to \citet{FerrerParis2013,DatosAmazona} for alternative model parametrization and detailed data for this genus.
+%,AbarbadensisLR2008}
+
+\subsubsection{\emph{Amazona amazonica}}
+
+<<echo=false>>=
+ak <- "Amaz_amaz"
+k = "Amazona amazonica"
+@ 
+
+\emph{Amazona amazonica} is a widespread species. The following maps shows the expected distribution in Venezuela and surrounding countries according to BirdLife polygon maps (pink polygons) and curated distribution records from GBIF for the time period of 2008-2012. Blue dots represents detection of the species and red dots represent detection of other species of Psittacidae, but lack of detection of the target species.
+
+<<Aand,fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+Some GBIF records are found outside the polygon of expected distribution. This can be an indication of incomplete representation of the known distribution in BirdLife maps, or taxonomic uncertainty in identification of GBIF records. 
+
+For this species we could fit several alternative occupancy models based on the large number of detections during the 2010 field survey data in Venezuela. We compare these models in the following table, were  \texttt{mod} is the model description, \texttt{n} is the sample size (number of localities within its expected distribution or with evidence of presence),  \texttt{dtt} is the number of detections, \texttt{AICc} is the corrected Akaike Information Criteria,  \texttt{Delta.AICc} is the difference in AICc to the model with lowest AICc,  \texttt{AICw} are the Akaike weights and \texttt{LL} is the log likelihood.
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+For this species the \texttt{p(h)Psi(VC)} model had the highest support according to the AIC weights. This model corresponds to a time-dependent probability of detection and a effect of vegetation and climatic conditions on the probability of presence. The following figure shows a weighted estimate of probability of detection per hour of the day for the two models with $\mathtt{AICw}>0$.
+
+<<Aapd.....,fig=true,echo=false,width=3,height=3>>=
+<<ProbDetect>>
+@ 
+
+The following map shows the predicted (unconditional) probability of presence for the whole country based on the model with highest support and the values of the vegetation and climatic covariates. Darker colors indicate higher probabilities, dots represent NeoMaps sampling localities, blue dots indicate detections and red dots indicate lack of detections.
+
+<<aaplot..,fig=true,echo=false,width=6.15,height=5>>=
+<<phPsiVC>>
+<<plotPsi>>
+@ 
+
+
+\subsubsection{\emph{Amazona autumnalis}}
+<<echo=false>>=
+ak <- "Amaz_autu"
+k ="Amazona autumnalis"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+This species was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<Auef,echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=7,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+Known GBIF records are found outside the polygon of expected distribution. This can be an indication of incomplete representation of the known distribution in BirdLife maps, or taxonomic uncertainty in identification of GBIF records.
+
+\subsubsection{\emph{Amazona barbadensis}}
+
+<<Ab,echo=false>>=
+ak <- "Amaz_barb"
+k = "Amazona barbadensis"
+@ 
+
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela and the Caribbean. 
+
+<<AbNd,fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+
+During NeoMaps field surveys in 2010, \emph{\Sexpr{k}} was detected in few localities, and due to small sample size, only two models could be fitted, both have similar support according to AIC weights.
+
+<<Abrslt,echo=false>>=
+<<rsltsSS>>
+@
+
+The following figure shows a weighted estimate of probability of detection per hour of the day for the two models with $\mathtt{AICw}>0$.
+
+<<pAb,fig=true,echo=false,width=3,height=3>>=
+<<ProbDetect>>
+@
+
+Unconditional probability of presence is relatively low (around $0,2$). For the three NeoMaps routes were the species was expected, presence was confirmed in very few localities (localities of detection), and true absence can be suspected in around 18\% of the sampling localities were the sampling effort was enough to achieve low values of the posterior or conditional probability of presence ($\Psi_{post} < 0,12$).
+
+<<fig=true,echo=false,width=5,height=5>>=
+<<PostPsiNM>>
+print(histogram(~psi.cond|nms,type="count",xlab="Posterior probability of presence"))
+@ 
+
+\subsubsection{\emph{Amazona bodini}}
+<<echo=false>>=
+ak <- "Amaz_bodi"
+k ="Amazona bodini"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela. It was not detected by NeoMaps field work, and is not represented in GBIF record from the 2008-2012 period. 
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+
+@ 
+
+\subsubsection{\emph{Amazona dufresniana}}
+<<echo=false>>=
+ak <- "Amaz_dufr"
+k ="Amazona dufresniana"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela. It was not detected by NeoMaps field work, and has few GBIF record from the 2008-2012 period. 
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+\subsubsection{\emph{Amazona farinosa}}
+<<echo=false>>=
+ak <- "Amaz_fari"
+k = "Amazona farinosa"
+@ 
+
+\emph{\Sexpr{k}} has a non-continuous distribution in Venezuela and was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+Available data allowed to fit models with constant probability of detection. The model with highest support according to AIC weights includes climatic and vegetion condition as covariates.
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+According to the model with the best support the unconditional probability of presence varied along the NeoMaps routes depending on the value of the covariates. The figure show four examples of 40 km routes, ordered from beginning to end, two with detections (NM05 and NM18) and two without detections (NM75 and NM93). The lines show the predicted unconditional probability of presence (solid line: best estimate, dotted lines 95\% confidence interval), and the dots represent the conditional probability given the observed detection history. Blue dots represent the localities of known occurrences, red dots are localities with very low posterior probabilities of presence ($\Psi_{post}<0.125$), grey dots are localities with intermediate values. 
+
+\setkeys{Gin}{width=0.8\textwidth}
+<<fig=true,echo=false,width=7,height=5>>=
+<<PostPsiNM>>
+
+layout(matrix(1:4,ncol=2))
+for (nn in c("05","18","75","93")) {
+    matplot(prd[nms %in% nn,c(1,3,4)],type="l",lty=c(1,3,3),col=1,ylim=c(0,1),main=sprintf("NM%s",nn),ylab="Probability of presence")
+    y <- psi.cond[nms %in% nn]
+    x <- seq(along=y)
+    points(x[y<0.125], y[y<0.125],pch=19,col="red")
+    points(x[y>0.125], y[y>0.125],pch=19,col="grey47")
+    points(x[y>0.95], y[y>0.95],pch=19,col="blue")
+
+}
+
+
+@ 
+\setkeys{Gin}{width=0.5\textwidth}
+
+The predicted (unconditional) probability of presence for the whole country does reflect the expected distribution, but predicts high probability of presence in areas of Falcón and Lara state where the species is absent, probably due to biogeographic constrains. 
+
+
+<<PsiFigureAfarinosa,fig=true,echo=false,width=6.15,height=5>>=
+<<p.PsiVC>>
+<<plotPsi>>
+@ 
+
+
+\subsubsection{\emph{Amazona mercenarius}}
+<<echo=false>>=
+ak <- "Amaz_merc"
+k ="Amazona mercenarius"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+
+\subsubsection{\emph{Amazona ochrocephala}}
+<<echo=false>>=
+ak <- "Amaz_ochr"
+k = "Amazona ochrocephala"
+@ 
+
+\emph{\Sexpr{k}} has a widespread distribution in Venezuela and was detected in several NeoMaps transects.
+  
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+Available data allowed to fit several models with constant probability of detection. The model with highest support according to AIC weights includes climatic and vegetion condition as covariates.
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+The predicted (unconditional) probability of presence for the whole country does reflect the expected distribution.
+
+<<fig=true,echo=false>>=
+<<p.PsiVC>>
+<<plotPsi>>
+@ 

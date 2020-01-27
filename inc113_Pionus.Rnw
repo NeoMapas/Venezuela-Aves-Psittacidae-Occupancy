@@ -1,0 +1,128 @@
+
+\subsection{Genus Pionus}
+
+The genus Pionus is represented in Venezuela by five species, but only one species was detected in NeoMaps surveys of 2010.
+
+<<P,echo=false>>=
+subset(rsm.loros,grepl("Pionus ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Pionus chalcopterus}}       
+<<Ph,echo=false>>=
+ak <- "Pion_chal"
+k ="Pionus chalcopterus"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+
+\subsubsection{\emph{Pionus fuscus}}        
+<<Pf,echo=false>>=
+ak <- "Pion_fusc"
+k ="Pionus fuscus"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+
+
+\subsubsection{\emph{Pionus menstruus}}     
+<<Pm,echo=false>>=
+ak <- "Pion_mens"
+k ="Pionus menstruus"
+@
+
+\emph{\Sexpr{k}} has a widespread but non continuos distribution and was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from NeoMaps.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+
+
+Available data allowed to fit several alternative models.
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+The model with most supports include a effect of time of the day on probability of detection and effect of climatic and vegetation covariates on probability of presence.
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+The predicted unconditional probability of presence matches very well the expected distribution.
+
+<<Pionus_menstruus_PlotPsi,fig=true,echo=false,width=6.15,height=5>>=
+<<phPsiVC>>
+<<plotPsiCrop>>
+@ 
+
+
+\subsubsection{\emph{Pionus seniloides}}         
+
+<<Pl,echo=false>>=
+ak <- "Pion_seni"
+k ="Pionus seniloides"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+\subsubsection{\emph{Pionus sordidus}}           
+<<Ps,echo=false>>=
+ak <- "Pion_sord"
+k ="Pionus sordidus"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 

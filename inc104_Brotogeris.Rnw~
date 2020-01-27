@@ -1,0 +1,90 @@
+
+\subsection{Genus Brotogeris}
+
+The genus Brotogeris is represented in Venezuela by three species, but only two were detected in NeoMaps surveys of 2010.
+
+<<echo=false>>=
+subset(rsm.loros,grepl("Brotogeris ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Brotogeris chrysoptera}}  
+<<echo=false>>=
+ak <- "Brot_chry"
+k ="Brotogeris chrysoptera"
+@
+\emph{\Sexpr{k}} is only found in eastern Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+It was detected twice during the field work in 2010. Due to the scarce data available, only two models could be fitted. The null model had best support according to AIC weights, but a poor fit with a combination of high probability of occurrence and low probability of detection and too wide standard errors for the estimated parameters:
+
+<<echo=false>>=
+<<rsltsSS>>
+<<SummaryMdl>>
+@ 
+
+
+
+\subsubsection{\emph{Brotogeris cyanoptera}}     
+<<echo=false>>=
+ak <- "Brot_cyan"
+k ="Brotogeris cyanoptera"
+@
+\emph{\Sexpr{k}} is only found in souther Venezuela in Amazonas state, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. It was not detected during the field work in 2010. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+
+
+\subsubsection{\emph{Brotogeris jugularis}}      
+<<Bj,echo=false>>=
+ak <- "Brot_jugu"
+k ="Brotogeris jugularis"
+@
+
+
+\emph{\Sexpr{k}} is only found in western Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+Available data allowed to fit several alternative models, and models with either climatic or vegetation covariates received considerable support according to AIC weights. 
+
+<<echo=false>>=
+<<rsltsSS>>
+@ 
+
+The best model includes an effect of time of day on the detection probability.
+
+<<fig=true,echo=false,width=3,height=3>>=
+<<ProbDetect>>
+@ 
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+
+
+The following map shows the predicted (unconditional) probability of presence for the whole country based on the model with highest support and the values of the climatic covariates. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<phPsiC>>
+<<plotPsiCrop>>
+@ 

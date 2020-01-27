@@ -1,0 +1,69 @@
+
+\subsection{Genus Pyrilia}
+The genus Pyrilia is represented in Venezuela by three species, only one species was detected in NeoMaps surveys.
+<<P,echo=false>>=
+subset(rsm.loros,grepl("Pyrilia ",rownames(rsm.loros)))[,-1]
+@ 
+
+\subsubsection{\emph{Pyrilia barrabandi}}        
+<<Pb,echo=false>>=
+ak <- "Pion_barr"
+k ="Pyrilia barrabandi"
+@
+
+\emph{\Sexpr{k}} is only found in southern Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+It was detected twice during the field work in 2010. Due to the scarce data available, only two models could be fitted. The null model had best support according to AIC weights, but a poor fit with a combination of high probability of occurrence and low probability of detection and too wide standard errors for the estimated parameters:
+
+<<echo=false>>=
+<<rsltsSS>>
+<<SummaryMdl>>
+@ 
+
+
+\subsubsection{\emph{Pyrilia caica}}             
+<<Pa,echo=false>>=
+ak <- "Pyri_caic"
+k ="Pyrilia caica"
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 
+
+
+\subsubsection{\emph{Pyrilia pyrilia}}           
+<<Pp,echo=false>>=
+ak <- "Pyri_pyri"
+k ="Pyrilia pyrilia"
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010.
+
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+
+@ 

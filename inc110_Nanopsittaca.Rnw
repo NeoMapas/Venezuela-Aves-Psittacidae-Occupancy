@@ -1,0 +1,30 @@
+
+\subsection{Genus Nannopsittaca, species \emph{N. panychlora}}  
+The genus Nannopsittaca is represented in Venezuela by a single species.
+
+<<N,echo=false>>=
+subset(rsm.loros,grepl("Nannopsittaca ",rownames(rsm.loros)))[,-1]
+@ 
+
+%\subsubsection{
+<<echo=false>>=
+ak <- "Nann_pany"
+k ="Nannopsittaca panychlora"
+@
+
+\emph{\Sexpr{k}} is a species of restricted distribution in Venezuela, it was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetectedRestricted>>
+@ 
+
+It was only detected once during NeoMaps field work. The fitted model had large estimates and large uncertainty in both parameters.
+
+<<echo=false>>=
+<<SummaryMdl>>
+@ 
+

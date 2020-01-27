@@ -1,0 +1,26 @@
+
+\subsection{Genus Deroptyus, species \emph{D. accipitrinus}}
+The genus Deroptyus is represented in Venezuela by a single species.
+
+<<Dr,echo=false>>=
+subset(rsm.loros,grepl("Deroptyus ",rownames(rsm.loros)))[,-1]
+@ 
+
+%\subsubsection{\emph{Deroptyus accipitrinus}}    
+<<echo=false>>=
+ak <- "Dero_acci"
+k ="Deroptyus accipitrinus"
+if (any(rslts$spp %in% ak))
+    subset(rslts,spp %in% ak)
+@
+
+\emph{\Sexpr{k}} is a species of restricted to South Venezuela, and  was expected in \Sexpr{ sum(subset(mexp,spp %in% k)$freq)} sampling points from 
+<<echo=false,results=tex>>=
+<<ExpectedFrom>>
+@ 
+. However this species was not detected during the field work in 2010, and only has few GBIF record from the 2008-2012 period. 
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
+

@@ -1,0 +1,21 @@
+
+
+\subsection{Genus Thectocercus, species \emph{T. acuticaudatus}}
+The genus Thectocercus is represented in Venezuela by a single species.
+
+<<echo=false>>=
+subset(rsm.loros,grepl("Thectocercus ",rownames(rsm.loros)))[,-1]
+@ 
+
+
+<<Ta,echo=false>>=
+ak <- "Arat_acut"
+k ="Thectocercus acuticaudatus"
+@
+
+
+\emph{\Sexpr{k}} was expected in \Sexpr{ sum(subset(mexp,spp %in% "Psittacara acuticaudatus")$freq)} sampling points. Although the species was detected during NeoMaps surveys of 2010, no model could be fitted with the available data.
+
+<<fig=true,echo=false,width=6.15,height=5>>=
+<<FigNotDetected>>
+@ 
